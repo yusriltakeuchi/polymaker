@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:simple_animations/simple_animations.dart';
 
 class FadeAnimation extends StatelessWidget {
+
+  ///Delay for animations
   final double delay;
+
+  ///Animation child
   final Widget child;
 
+  ///Initialize constructor
   FadeAnimation({this.delay, this.child});
 
   @override

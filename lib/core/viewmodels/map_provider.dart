@@ -17,91 +17,91 @@ class MapProvider extends ChangeNotifier {
   //   PROPERTY SECTIONS    //
   //------------------------//
   
-  //Property zoom camera
+  ///Property zoom camera
   double _cameraZoom = 16;
   double get cameraZoom => _cameraZoom;
 
-  //Property camera position
+  ///Property camera position
   CameraPosition _cameraPosition;
   CameraPosition get cameraPosition => _cameraPosition;
 
-  //Property camera tilt
+  ///Property camera tilt
   double _cameraTilt = 0;
   double get cameraTilt => _cameraTilt;
 
-  //Property camera bearing
+  ///Property camera bearing
   double _cameraBearing = 0;
   double get cameraBearing => _cameraBearing;
 
-  //Property my location data
+  ///Property my location data
   LatLng _sourceLocation;
   LatLng get sourceLocation => _sourceLocation;
 
-  //Property Google Map Controller completer
+  ///Property Google Map Controller completer
   Completer<GoogleMapController> _completer = Completer();
   Completer<GoogleMapController> get completer => _completer;
 
-  //Property Google Map Controller
+  ///Property Google Map Controller
   GoogleMapController _controller;
   GoogleMapController get controller => _controller;
 
-  //Property to save all markers
+  ///Property to save all markers
   Set<Marker> _markers = {};
   Set<Marker> get markers => _markers;
 
-  //Property custom icon to point polygon
+  ///Property custom icon to point polygon
   BitmapDescriptor _pointIcon;
   BitmapDescriptor get pointIcon => _pointIcon;
 
-  //Property to mapStyle
+  ///Property to mapStyle
   String _mapStyle;
   String get mapStyle => _mapStyle;
 
-  //Property location services
+  ///Property location services
   Location location = new Location();
 
-  //Property to handle edit mode
+  ///Property to handle edit mode
   bool _isEditMode = false;
   bool get isEditMode => _isEditMode;
   
-  //Property temporary polygon list
+  ///Property temporary polygon list
   Set<Polygon> _tempPolygons = new Set();
   Set<Polygon> get tempPolygons => _tempPolygons;
 
-  //Property polygon list
+  ///Property polygon list
   Set<Polygon> _polygons = new Set();
   Set<Polygon> get polygons => _polygons;
 
-  //Property temporary location
+  ///Property temporary location
   List<LatLng> _tempLocation = new List();
   List<LatLng> get tempLocation => _tempLocation;
 
-  //Property to get uniqueId for markers
+  ///Property to get uniqueId for markers
   String _uniqueID = "";
   String get uniqueID => _uniqueID;
 
-  //Property to polygon color
+  ///Property to polygon color
   Color _polygonColor;
   Color get polygonColor => _polygonColor;
 
-  //Property to custom marker
+  ///Property to custom marker
   Uint8List _customMarker;
   Uint8List get customMarker => _customMarker;
 
+  //Marker key for custom marker
   final markerKey = GlobalKey();
 
   //------------------------//
   //   FUNCTION SECTIONS   //
   //------------------------//
 
-  //Function to initialize camera
+  ///Function to initialize camera
   void initCamera() async {
     
-    //Get current locations
+    ///Get current locations
     await initLocation();
-    await setIcons();
- 
-    //Set current location to camera
+
+    ///Set current location to camera
     _cameraPosition = CameraPosition(
       zoom: cameraZoom,
       bearing: cameraBearing,
@@ -111,13 +111,13 @@ class MapProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  //Function to init polygon color
+  ///Function to init polygon color
   void setPolygonColor(Color color) async {
     _polygonColor = await color;
     notifyListeners();
   }
 
-  //Function to get current locations
+  ///Function to get current locations
   Future<void> initLocation() async {
     var locData = await location.getLocation();
     _sourceLocation = LatLng(locData.latitude, locData.longitude);
@@ -125,32 +125,24 @@ class MapProvider extends ChangeNotifier {
     notifyListeners();
   }
   
-  //Function to handle when maps created
+  ///Function to handle when maps created
   void onMapCreated(GoogleMapController controller) async {
     
-    //Loading map style
+    ///Loading map style
     _mapStyle = await rootBundle.loadString("packages/polymaker/assets/map_style.txt");
 
-    // _completer = Completer();
     _completer.complete(controller);
     _controller = controller;
 
-    //Set style to map
+    ///Set style to map
     _controller.setMapStyle(_mapStyle);
     
     notifyListeners();
   }
 
-  //Function to set custom icon marker
-  Future<void> setIcons() async {
-    _pointIcon = await BitmapDescriptor.fromAssetImage(
-      ImageConfiguration(devicePixelRatio: 2.5), "images/point_location.png", package: "polymaker");
-
-    notifyListeners();
-  }
-
-  //Function to change camera position
+  ///Function to change camera position
   void changeCameraPosition(LatLng location) {
+    ///Moving maps camera
     _controller.animateCamera(CameraUpdate.newLatLngZoom(
       LatLng(location.latitude, location.longitude,), cameraZoom)
     );
@@ -158,7 +150,7 @@ class MapProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  //Function to change toggle edit mode
+  ///Function to change toggle edit mode
   void changeEditMode() {
     _isEditMode = !_isEditMode;
 
@@ -175,7 +167,7 @@ class MapProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  //Function to undo select location in edit mode
+  ///Function to undo select location in edit mode
   void undoLocation() {
     if (_tempLocation.length > 0) {
       _markers.removeWhere((mark) => mark.position == _tempLocation.last);
@@ -187,7 +179,7 @@ class MapProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  //Function to handle onTap Map and get location
+  ///Function to handle onTap Map and get location
   void onTapMap(LatLng _location) {
     if (isEditMode == true) {
       _tempLocation.add(_location);
@@ -201,7 +193,7 @@ class MapProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  //Function to set marker locations
+  ///Function to set marker locations
   void setMarkerLocation(String id, LatLng _location, BitmapDescriptor icon, {String title}) async {
     Uint8List markerIcon = await getUint8List(markerKey);
 
@@ -215,7 +207,7 @@ class MapProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  //Function to set temporary polygons to polygons
+  ///Function to set temporary polygons to polygons
   void setTempToPolygon() {
     if (_tempPolygons != null) {
       _tempPolygons.removeWhere((poly) => poly.polygonId.toString() == uniqueID);
@@ -232,7 +224,7 @@ class MapProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  //Function to save polygon to database
+  ///Function to save polygon to database
   void savePolygon(BuildContext context) {
     if (_tempLocation.length > 0) {
 
@@ -249,7 +241,7 @@ class MapProvider extends ChangeNotifier {
     }
   }
 
-  //* Converting Widget to PNG
+  ///Converting Widget to PNG
   Future<Uint8List> getUint8List(GlobalKey markerKey) async {
     RenderRepaintBoundary boundary =
     markerKey.currentContext.findRenderObject();
