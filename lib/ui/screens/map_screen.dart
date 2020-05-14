@@ -13,24 +13,22 @@ class MapScreen extends StatelessWidget {
   final IconData iconCloseEdit;
   final IconData iconDoneEdit;
   final IconData iconUndoEdit;
-  
-  MapScreen({
-    this.toolColor,
-    this.polygonColor,
-    this.iconLocation,
-    this.iconEditMode,
-    this.iconCloseEdit,
-    this.iconDoneEdit,
-    this.iconUndoEdit
-  });
-  
+
+  MapScreen(
+      {this.toolColor,
+      this.polygonColor,
+      this.iconLocation,
+      this.iconEditMode,
+      this.iconCloseEdit,
+      this.iconDoneEdit,
+      this.iconUndoEdit});
+
   @override
   Widget build(BuildContext context) {
     //To modify status bar
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark
-    ));
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark));
 
     return Scaffold(
       body: MultiProvider(
@@ -41,7 +39,6 @@ class MapScreen extends StatelessWidget {
         ],
         child: Consumer<MapProvider>(
           builder: (contex, mapProv, _) {
-
             //Get first location
             if (mapProv.cameraPosition == null) {
               mapProv.initCamera();
@@ -54,29 +51,28 @@ class MapScreen extends StatelessWidget {
             return Center(
               child: Stack(
                 children: <Widget>[
-
                   mapIcon(),
-            
-                  mapProv.cameraPosition != null ? Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height,
-                    child: GoogleMap(
-                      myLocationButtonEnabled: false,
-                      myLocationEnabled: true,
-                      compassEnabled: false,
-                      tiltGesturesEnabled: false,
-                      markers: mapProv.markers,
-                      mapType: MapType.normal,
-                      initialCameraPosition: mapProv.cameraPosition,
-                      onMapCreated: mapProv.onMapCreated,
-                      mapToolbarEnabled: false,
-                      onTap: (loc) => mapProv.onTapMap(loc),
-                      polygons: mapProv.polygons,
-                    ),
-                  ) : Center(
-                    child: CircularProgressIndicator(),
-                  ),
-
+                  mapProv.cameraPosition != null
+                      ? Container(
+                          width: MediaQuery.of(context).size.width,
+                          height: MediaQuery.of(context).size.height,
+                          child: GoogleMap(
+                            myLocationButtonEnabled: false,
+                            myLocationEnabled: true,
+                            compassEnabled: false,
+                            tiltGesturesEnabled: false,
+                            markers: mapProv.markers,
+                            mapType: MapType.normal,
+                            initialCameraPosition: mapProv.cameraPosition,
+                            onMapCreated: mapProv.onMapCreated,
+                            mapToolbarEnabled: false,
+                            onTap: (loc) => mapProv.onTapMap(loc),
+                            polygons: mapProv.polygons,
+                          ),
+                        )
+                      : Center(
+                          child: CircularProgressIndicator(),
+                        ),
                   _toolsList()
                 ],
               ),
@@ -95,18 +91,15 @@ class MapScreen extends StatelessWidget {
           child: Container(
             width: 32,
             height: 32,
-            decoration: BoxDecoration(
-              color: polygonColor,
-              shape: BoxShape.circle
-            ),
+            decoration:
+                BoxDecoration(color: polygonColor, shape: BoxShape.circle),
             child: Center(
               child: Text(
-                (mapProv.tempLocation.length+1).toString(),
+                (mapProv.tempLocation.length + 1).toString(),
                 style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15
-                ),
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15),
               ),
             ),
           ),
@@ -124,74 +117,86 @@ class MapScreen extends StatelessWidget {
               child: Align(
                 alignment: Alignment.topRight,
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 30, right: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
-
-                      mapProv.isEditMode == true ? FadeAnimation(
-                        delay: 0.8,
-                        child: InkWell(
-                          onTap: () => mapProv.undoLocation(),
+                    padding: const EdgeInsets.only(top: 30, right: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        mapProv.isEditMode == true
+                            ? FadeAnimation(
+                                delay: 0.8,
+                                child: InkWell(
+                                  onTap: () => mapProv.undoLocation(),
+                                  child: Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                        color: toolColor,
+                                        borderRadius:
+                                            BorderRadius.circular(50)),
+                                    child: Icon(
+                                      iconUndoEdit,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : SizedBox(),
+                        SizedBox(width: mapProv.isEditMode == true ? 10 : 0),
+                        mapProv.isEditMode == true
+                            ? FadeAnimation(
+                                delay: 0.5,
+                                child: InkWell(
+                                  onTap: () => mapProv.savePolygon(context),
+                                  child: Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                        color: toolColor,
+                                        borderRadius:
+                                            BorderRadius.circular(50)),
+                                    child: Icon(
+                                      iconDoneEdit,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : SizedBox(),
+                        SizedBox(width: mapProv.isEditMode == true ? 10 : 0),
+                        InkWell(
+                          onTap: () => mapProv.changeEditMode(),
                           child: Container(
                             width: 40,
                             height: 40,
                             decoration: BoxDecoration(
-                              color: toolColor,
-                              borderRadius: BorderRadius.circular(50)
+                                color: toolColor,
+                                borderRadius: BorderRadius.circular(50)),
+                            child: Icon(
+                              mapProv.isEditMode == false
+                                  ? iconEditMode
+                                  : iconCloseEdit,
+                              color: Colors.white,
                             ),
-                            child: Icon(iconUndoEdit, color: Colors.white,),
                           ),
                         ),
-                      ) : SizedBox(),
-                      SizedBox(width: mapProv.isEditMode == true ? 10 : 0),
-
-                      mapProv.isEditMode == true ? FadeAnimation(
-                        delay: 0.5,
-                        child: InkWell(
-                          onTap: () => mapProv.savePolygon(context),
+                        SizedBox(width: 10),
+                        InkWell(
+                          onTap: () => mapProv
+                              .changeCameraPosition(mapProv.sourceLocation),
                           child: Container(
                             width: 40,
                             height: 40,
                             decoration: BoxDecoration(
-                              color: toolColor,
-                              borderRadius: BorderRadius.circular(50)
+                                color: toolColor,
+                                borderRadius: BorderRadius.circular(50)),
+                            child: Icon(
+                              iconLocation,
+                              color: Colors.white,
                             ),
-                            child: Icon(iconDoneEdit, color: Colors.white,),
                           ),
                         ),
-                      ) : SizedBox(),
-                      SizedBox(width: mapProv.isEditMode == true ? 10 : 0),
-
-                      InkWell(
-                        onTap: () => mapProv.changeEditMode(),
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: toolColor,
-                            borderRadius: BorderRadius.circular(50)
-                          ),
-                          child: Icon(mapProv.isEditMode == false ? iconEditMode : iconCloseEdit, color: Colors.white,),
-                        ),
-                      ),
-                      SizedBox(width: 10),
-
-                      InkWell(
-                        onTap: () => mapProv.changeCameraPosition(mapProv.sourceLocation),
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: toolColor,
-                            borderRadius: BorderRadius.circular(50)
-                          ),
-                          child: Icon(iconLocation, color: Colors.white,),
-                        ),
-                      ),
-                    ],
-                  )
-                ),
+                      ],
+                    )),
               ),
             );
           },
@@ -215,7 +220,7 @@ class MapScreen extends StatelessWidget {
 //       statusBarColor: Colors.transparent,
 //       statusBarIconBrightness: Brightness.dark
 //     ));
-    
+
 //     return Consumer<MapProvider>(
 //       builder: (contex, mapProv, _) {
 
@@ -230,7 +235,7 @@ class MapScreen extends StatelessWidget {
 //         return Center(
 //           child: Stack(
 //             children: <Widget>[
-              
+
 //               mapProv.cameraPosition != null ? Container(
 //                 width: MediaQuery.of(context).size.width,
 //                 height: MediaQuery.of(context).size.height,
