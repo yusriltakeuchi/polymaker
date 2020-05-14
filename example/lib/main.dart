@@ -1,4 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:polymaker/core/models/location_polygon.dart';
 import 'package:polymaker/polymaker.dart' as polymaker;
 
@@ -39,7 +41,6 @@ class HomeBody extends StatefulWidget {
 class _HomeBodyState extends State<HomeBody> {
 
   List<LocationPolygon> locationList;
-
   void getLocation() async {
     var result = await polymaker.getLocation(context);
     if (result != null) {
@@ -54,6 +55,7 @@ class _HomeBodyState extends State<HomeBody> {
     super.initState();
     locationList = new List<LocationPolygon>();
   }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -80,7 +82,7 @@ class _HomeBodyState extends State<HomeBody> {
                 style: TextStyle(fontSize: 16, color: Colors.white),
               ),
             ),
-          )
+          ),
         ],
       ),
     );

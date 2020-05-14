@@ -6,13 +6,13 @@ import 'package:polymaker/ui/Animation/FadeAnimation.dart';
 import 'package:provider/provider.dart';
 
 class MapScreen extends StatelessWidget {
-  Color toolColor;
-  Color polygonColor;
-  IconData iconLocation;
-  IconData iconEditMode;
-  IconData iconCloseEdit;
-  IconData iconDoneEdit;
-  IconData iconUndoEdit;
+  final Color toolColor;
+  final Color polygonColor;
+  final IconData iconLocation;
+  final IconData iconEditMode;
+  final IconData iconCloseEdit;
+  final IconData iconDoneEdit;
+  final IconData iconUndoEdit;
   
   MapScreen({
     this.toolColor,
@@ -23,7 +23,7 @@ class MapScreen extends StatelessWidget {
     this.iconDoneEdit,
     this.iconUndoEdit
   });
-
+  
   @override
   Widget build(BuildContext context) {
     //To modify status bar
@@ -54,7 +54,9 @@ class MapScreen extends StatelessWidget {
             return Center(
               child: Stack(
                 children: <Widget>[
-                  
+
+                  mapIcon(),
+            
                   mapProv.cameraPosition != null ? Container(
                     width: MediaQuery.of(context).size.width,
                     height: MediaQuery.of(context).size.height,
@@ -82,6 +84,34 @@ class MapScreen extends StatelessWidget {
           },
         ),
       ),
+    );
+  }
+
+  Widget mapIcon() {
+    return Consumer<MapProvider>(
+      builder: (context, mapProv, _) {
+        return RepaintBoundary(
+          key: mapProv.markerKey,
+          child: Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: polygonColor,
+              shape: BoxShape.circle
+            ),
+            child: Center(
+              child: Text(
+                (mapProv.tempLocation.length+1).toString(),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 

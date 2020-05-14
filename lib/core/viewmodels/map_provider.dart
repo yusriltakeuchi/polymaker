@@ -1,8 +1,11 @@
 
 import 'dart:async';
 import 'dart:math';
+import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
@@ -81,6 +84,12 @@ class MapProvider extends ChangeNotifier {
   Color _polygonColor;
   Color get polygonColor => _polygonColor;
 
+  //Property to custom marker
+  Uint8List _customMarker;
+  Uint8List get customMarker => _customMarker;
+
+  final markerKey = GlobalKey();
+
   //------------------------//
   //   FUNCTION SECTIONS   //
   //------------------------//
@@ -109,7 +118,7 @@ class MapProvider extends ChangeNotifier {
   }
 
   //Function to get current locations
-  void initLocation() async {
+  Future<void> initLocation() async {
     var locData = await location.getLocation();
     _sourceLocation = LatLng(locData.latitude, locData.longitude);
     
@@ -133,7 +142,7 @@ class MapProvider extends ChangeNotifier {
   }
 
   //Function to set custom icon marker
-  void setIcons() async {
+  Future<void> setIcons() async {
     _pointIcon = await BitmapDescriptor.fromAssetImage(
       ImageConfiguration(devicePixelRatio: 2.5), "images/point_location.png", package: "polymaker");
 
@@ -193,12 +202,14 @@ class MapProvider extends ChangeNotifier {
   }
 
   //Function to set marker locations
-  void setMarkerLocation(String id, LatLng _location, BitmapDescriptor icon, {String title}) {
+  void setMarkerLocation(String id, LatLng _location, BitmapDescriptor icon, {String title}) async {
+    Uint8List markerIcon = await getUint8List(markerKey);
+
     _markers.add(Marker(
       markerId: MarkerId("${uniqueID + id}"),
       position: _location,
-      icon: icon,
-      infoWindow: title != null ? InfoWindow(title: title, snippet: "Area Polygon Nomor ${id}") : null
+      icon: BitmapDescriptor.fromBytes(markerIcon),
+      infoWindow: title != null ? InfoWindow(title: title, snippet: "Area Polygon Nomor $id") : null
     ));
 
     notifyListeners();
@@ -207,7 +218,7 @@ class MapProvider extends ChangeNotifier {
   //Function to set temporary polygons to polygons
   void setTempToPolygon() {
     if (_tempPolygons != null) {
-      _tempPolygons.removeWhere((poly) => poly.polygonId == uniqueID);
+      _tempPolygons.removeWhere((poly) => poly.polygonId.toString() == uniqueID);
     }
 
     _tempPolygons.add(Polygon(
@@ -236,6 +247,15 @@ class MapProvider extends ChangeNotifier {
     } else {
       Navigator.pop(context, null);
     }
+  }
+
+  //* Converting Widget to PNG
+  Future<Uint8List> getUint8List(GlobalKey markerKey) async {
+    RenderRepaintBoundary boundary =
+    markerKey.currentContext.findRenderObject();
+    var image = await boundary.toImage(pixelRatio: 2.0);
+    ByteData byteData = await image.toByteData(format: ImageByteFormat.png);
+    return byteData.buffer.asUint8List();
   }
 
 }
