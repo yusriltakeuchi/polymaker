@@ -1,3 +1,7 @@
+## [0.0.2+2] - 2020-05-15
+ 
+* Fixing Readme Error
+
 ## [0.0.2+1] - 2020-05-15
  
 * Cleaning & Formatting Some Code
