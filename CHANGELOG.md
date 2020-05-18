@@ -1,3 +1,7 @@
+## [0.0.3+1] - 2020-05-18
+ 
+* Fixing some warning
+
 ## [0.0.3] - 2020-05-18
  
 * Adding Point Distance

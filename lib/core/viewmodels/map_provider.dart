@@ -139,8 +139,13 @@ class MapProvider extends ChangeNotifier {
 
   ///Function to init polygon color
   void setPolygonColor(Color color) async {
-    _polygonColor = await color;
+    _polygonColor = await getPolyColor(color);
     notifyListeners();
+  }
+
+  ///Assign polygon color
+  Future<Color> getPolyColor(Color color) async {
+    return color;
   }
 
   ///Function to get current locations
@@ -226,7 +231,7 @@ class MapProvider extends ChangeNotifier {
   }
 
   ///Function to create distance marker
-  void createDistanceMarker(LatLng startLocation, LatLng _location) async {
+  Future<void> createDistanceMarker(LatLng startLocation, LatLng _location) async {
     LatLng center = await getCenterLatLong([startLocation, _location]);
     String dist = await calculateDistance(startLocation, _location);
     _distance = dist;
@@ -241,7 +246,7 @@ class MapProvider extends ChangeNotifier {
   }
 
   ///Function to set end location marker
-  void createEndLoc(LatLng startLocation, LatLng _location) async {
+  Future<void> createEndLoc(LatLng startLocation, LatLng _location) async {
     LatLng center = await getCenterLatLong([startLocation, _location]);
     String dist = await calculateDistance(startLocation, _location);
     _distance = dist;
@@ -255,6 +260,10 @@ class MapProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> removeMarker(LatLng _loc) async {
+    _markers.removeWhere((mark) => mark.position == _loc);
+  }
+
   ///Function to handle onTap Map and get location
   void onTapMap(LatLng _location) async {
 
@@ -263,7 +272,7 @@ class MapProvider extends ChangeNotifier {
       if (_tempLocation.length > 0) {
         if (_tempLocation.length > 1 && pointDistance) {
           ///Remove previous distance first point to last point
-          await _markers.removeWhere((mark) => mark.position == _endLoc);
+          await removeMarker(_endLoc);
 
           //Create distance marker for first point to last point
           await createEndLoc(_tempLocation[0], _location);
@@ -347,7 +356,7 @@ class MapProvider extends ChangeNotifier {
   }
 
   ///Function to get center location between two coordinate
-  LatLng getCenterLatLong(List<LatLng> latLongList) {
+  Future<LatLng> getCenterLatLong(List<LatLng> latLongList) async {
       double pi = math.pi / 180;
       double xpi = 180 / math.pi;
       double x = 0, y = 0, z = 0;
@@ -356,6 +365,7 @@ class MapProvider extends ChangeNotifier {
       {
           return latLongList[0];
       }
+
       for (int i = 0; i < latLongList.length; i++) {
         double latitude = latLongList[i].latitude * pi;
         double longitude = latLongList[i].longitude * pi;
@@ -378,7 +388,7 @@ class MapProvider extends ChangeNotifier {
   }
 
   ///Calculate distance between two location
-  String calculateDistance(LatLng firstLocation, LatLng secondLocation){
+  Future<String> calculateDistance(LatLng firstLocation, LatLng secondLocation) async {
     var p = 0.017453292519943295;
     var c = cos;
     var a = 0.5 - c((secondLocation.latitude - firstLocation.latitude) * p)/2 + 

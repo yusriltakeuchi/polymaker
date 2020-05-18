@@ -22,6 +22,7 @@ Polymaker can be run with only one line of code, and returns the location's List
 - Undo Editing to Previous Location
 - Realtime polygon to view result
 - Custom Marker as Pointing Number
+- Point Distance
 
 <p><img  src="https://i.ibb.co/vVh0qV0/Whats-App-Image-2020-05-18-at-19-48-22-1.jpg"  width=265/>
 <img  src="https://i.ibb.co/7yxM8dJ/Whats-App-Image-2020-05-18-at-19-48-22.jpg"  width=265 /></p>
