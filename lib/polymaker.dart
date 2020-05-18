@@ -29,6 +29,12 @@ class PolyMaker {
   ///Property to cusstomize undo icon
   final IconData iconUndoEdit;
 
+  ///Property to auto edit mode when maps open
+  final bool autoEditMode;
+
+  ///Property to enable and disable point distance
+  final bool pointDistance;
+
   PolyMaker({
     @required this.context,
     this.toolColor,
@@ -38,6 +44,8 @@ class PolyMaker {
     this.iconCloseEdit,
     this.iconDoneEdit,
     this.iconUndoEdit,
+    this.autoEditMode,
+    this.pointDistance
   });
 
   ///Function to open location maker and get result locations
@@ -51,6 +59,8 @@ class PolyMaker {
               iconCloseEdit: iconCloseEdit,
               iconDoneEdit: iconDoneEdit,
               iconUndoEdit: iconUndoEdit,
+              autoEditMode: autoEditMode,
+              pointDistance: pointDistance,
             )));
     return result;
   }
@@ -65,7 +75,9 @@ Future<List<LocationPolygon>> getLocation(BuildContext context,
     IconData iconEditMode,
     IconData iconCloseEdit,
     IconData iconDoneEdit,
-    IconData iconUndoEdit}) async {
+    IconData iconUndoEdit,
+    bool autoEditMode,
+    bool pointDistance}) async {
   return await PolyMaker(
     context: context,
     toolColor: toolColor != null ? toolColor : Colors.black87,
@@ -75,5 +87,7 @@ Future<List<LocationPolygon>> getLocation(BuildContext context,
     iconCloseEdit: iconCloseEdit != null ? iconCloseEdit : Icons.close,
     iconDoneEdit: iconDoneEdit != null ? iconDoneEdit : Icons.check,
     iconUndoEdit: iconUndoEdit != null ? iconUndoEdit : Icons.undo,
+    autoEditMode: autoEditMode != null ? autoEditMode : false,
+    pointDistance: pointDistance != null ? pointDistance : true
   ).getLocation();
 }

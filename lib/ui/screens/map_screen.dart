@@ -5,7 +5,7 @@ import 'package:polymaker/core/viewmodels/map_provider.dart';
 import 'package:polymaker/ui/Animation/FadeAnimation.dart';
 import 'package:provider/provider.dart';
 
-class MapScreen extends StatelessWidget {
+class MapScreen extends StatefulWidget {
 
   ///Property to customize tool color
   final Color toolColor;
@@ -28,6 +28,12 @@ class MapScreen extends StatelessWidget {
   ///Property to cusstomize undo icon
   final IconData iconUndoEdit;
 
+  ///Property to auto edit mode when maps open
+  final bool autoEditMode;
+
+  ///Property to enable and disable point distance
+  final bool pointDistance;
+
   MapScreen(
       {this.toolColor,
       this.polygonColor,
@@ -35,7 +41,16 @@ class MapScreen extends StatelessWidget {
       this.iconEditMode,
       this.iconCloseEdit,
       this.iconDoneEdit,
-      this.iconUndoEdit});
+      this.iconUndoEdit,
+      this.autoEditMode,
+      this.pointDistance});
+
+  @override
+  _MapScreenState createState() => _MapScreenState();
+}
+
+class _MapScreenState extends State<MapScreen> {
+  String distance = "awal";
 
   @override
   Widget build(BuildContext context) {
@@ -55,8 +70,8 @@ class MapScreen extends StatelessWidget {
           builder: (contex, mapProv, _) {
             //Get first location
             if (mapProv.cameraPosition == null) {
-              mapProv.initCamera();
-              mapProv.setPolygonColor(polygonColor);
+              mapProv.initCamera(widget.autoEditMode, widget.pointDistance);
+              mapProv.setPolygonColor(widget.polygonColor);
               return Center(
                 child: CircularProgressIndicator(),
               );
@@ -65,7 +80,14 @@ class MapScreen extends StatelessWidget {
             return Center(
               child: Stack(
                 children: <Widget>[
-                  mapIcon(),
+                  Positioned(
+                    top: -300,
+                    child: mapDistance()
+                  ),
+                  Positioned(
+                    top: -300,
+                    child: mapIcon()
+                  ),
                   mapProv.cameraPosition != null
                       ? Container(
                           width: MediaQuery.of(context).size.width,
@@ -87,7 +109,7 @@ class MapScreen extends StatelessWidget {
                       : Center(
                           child: CircularProgressIndicator(),
                         ),
-                  _toolsList()
+                  _toolsList(),
                 ],
               ),
             );
@@ -107,7 +129,7 @@ class MapScreen extends StatelessWidget {
             width: 32,
             height: 32,
             decoration:
-                BoxDecoration(color: polygonColor, shape: BoxShape.circle),
+                BoxDecoration(color: widget.polygonColor, shape: BoxShape.circle),
             child: Center(
               child: Text(
                 (mapProv.tempLocation.length + 1).toString(),
@@ -115,6 +137,30 @@ class MapScreen extends StatelessWidget {
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 15),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget mapDistance() {
+    return Consumer<MapProvider>(
+      builder: (context, mapProv, _) {
+        return RepaintBoundary(
+          key: mapProv.distanceKey,
+          child: Container(
+            width: mapProv.distance.length > 6 ? (mapProv.distance.length >= 9 ? 100 : 80) : 64,
+            height: 32,
+            decoration: BoxDecoration(
+              color: widget.toolColor,
+              borderRadius: BorderRadius.circular(10)
+            ),
+            child: Center(
+              child: Text(
+                mapProv.distance,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)
               ),
             ),
           ),
@@ -146,11 +192,11 @@ class MapScreen extends StatelessWidget {
                                     width: 40,
                                     height: 40,
                                     decoration: BoxDecoration(
-                                        color: toolColor,
+                                        color: widget.toolColor,
                                         borderRadius:
                                             BorderRadius.circular(50)),
                                     child: Icon(
-                                      iconUndoEdit,
+                                      widget.iconUndoEdit,
                                       color: Colors.white,
                                     ),
                                   ),
@@ -167,11 +213,11 @@ class MapScreen extends StatelessWidget {
                                     width: 40,
                                     height: 40,
                                     decoration: BoxDecoration(
-                                        color: toolColor,
+                                        color: widget.toolColor,
                                         borderRadius:
                                             BorderRadius.circular(50)),
                                     child: Icon(
-                                      iconDoneEdit,
+                                      widget.iconDoneEdit,
                                       color: Colors.white,
                                     ),
                                   ),
@@ -185,12 +231,12 @@ class MapScreen extends StatelessWidget {
                             width: 40,
                             height: 40,
                             decoration: BoxDecoration(
-                                color: toolColor,
+                                color: widget.toolColor,
                                 borderRadius: BorderRadius.circular(50)),
                             child: Icon(
                               mapProv.isEditMode == false
-                                  ? iconEditMode
-                                  : iconCloseEdit,
+                                  ? widget.iconEditMode
+                                  : widget.iconCloseEdit,
                               color: Colors.white,
                             ),
                           ),
@@ -203,10 +249,10 @@ class MapScreen extends StatelessWidget {
                             width: 40,
                             height: 40,
                             decoration: BoxDecoration(
-                                color: toolColor,
+                                color: widget.toolColor,
                                 borderRadius: BorderRadius.circular(50)),
                             child: Icon(
-                              iconLocation,
+                              widget.iconLocation,
                               color: Colors.white,
                             ),
                           ),

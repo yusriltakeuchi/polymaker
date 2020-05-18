@@ -23,17 +23,10 @@ Polymaker can be run with only one line of code, and returns the location's List
 - Realtime polygon to view result
 - Custom Marker as Pointing Number
 
-  
+<p><img  src="https://i.ibb.co/vVh0qV0/Whats-App-Image-2020-05-18-at-19-48-22-1.jpg"  width=265/>
+<img  src="https://i.ibb.co/7yxM8dJ/Whats-App-Image-2020-05-18-at-19-48-22.jpg"  width=265 /></p>
 
   
-
-<p><img  src="https://i.ibb.co/x3SRTn6/Whats-App-Image-2020-05-14-at-15-36-26-1.jpg"  width=265/>
-<img  src="https://i.ibb.co/n06KMdG/Whats-App-Image-2020-05-15-at-05-52-54.jpg"  width=265 /></p>
-
-  
-
-  
-
 # Billing
 
 You must enable some API in google cloud to use this features
@@ -136,4 +129,6 @@ var result =  await polymaker.getLocation(context);
 |**iconEditMode** |Property to customize edit mode icon |IconData
 |**iconCloseEdit** |Property to customize close tool icon |IconData
 |**iconDoneEdit** |Property to customize done icon |IconData
-|**iconUndoEdit** |Property to cusstomize undo icon |IconData
+|**iconUndoEdit** |Property to customize undo icon |IconData
+|**autoEditMode** |Automatic enable edit mode |Boolean
+|**pointDistance** |Enable / Disable Point Distance |Boolean

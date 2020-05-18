@@ -3,6 +3,8 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui';
+import 'dart:math' as math;
+import 'dart:math' show cos, sqrt, asin;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -49,10 +51,6 @@ class MapProvider extends ChangeNotifier {
   Set<Marker> _markers = {};
   Set<Marker> get markers => _markers;
 
-  ///Property custom icon to point polygon
-  BitmapDescriptor _pointIcon;
-  BitmapDescriptor get pointIcon => _pointIcon;
-
   ///Property to mapStyle
   String _mapStyle;
   String get mapStyle => _mapStyle;
@@ -76,6 +74,14 @@ class MapProvider extends ChangeNotifier {
   List<LatLng> _tempLocation = new List();
   List<LatLng> get tempLocation => _tempLocation;
 
+  ///Property to save distance location
+  List<LatLng> _distanceLocation = new List();
+  List<LatLng> get distanceLocation => _distanceLocation;
+
+  ///Propoerty to save end location
+  LatLng _endLoc;
+  LatLng get endLoc => _endLoc;
+
   ///Property to get uniqueId for markers
   String _uniqueID = "";
   String get uniqueID => _uniqueID;
@@ -88,15 +94,24 @@ class MapProvider extends ChangeNotifier {
   Uint8List _customMarker;
   Uint8List get customMarker => _customMarker;
 
-  //Marker key for custom marker
+  ///Custom key for custom marker
   final markerKey = GlobalKey();
+  final distanceKey = GlobalKey();
+
+  ///Value to show distance between two location
+  String _distance = "0";
+  String get distance => _distance;
+
+  ///Property for enable point distance
+  bool _pointDistance = true;
+  bool get pointDistance => _pointDistance;
 
   //------------------------//
   //   FUNCTION SECTIONS   //
   //------------------------//
 
   ///Function to initialize camera
-  void initCamera() async {
+  void initCamera(bool autoEditMode, bool pointDist) async {
     
     ///Get current locations
     await initLocation();
@@ -108,6 +123,17 @@ class MapProvider extends ChangeNotifier {
       tilt: cameraTilt,
       target: sourceLocation
     );
+
+    ///Auto mode on
+    if (autoEditMode) {
+      _isEditMode = !_isEditMode;
+    }
+
+    //Enable or Disable point distance
+    if (pointDist == false) {
+      _pointDistance = false;
+    }
+
     notifyListeners();
   }
 
@@ -159,6 +185,7 @@ class MapProvider extends ChangeNotifier {
       _uniqueID = "";
       _tempPolygons.clear();
       _tempLocation.clear();
+      _distanceLocation.clear();
       _markers.clear();
 
     } else {
@@ -171,31 +198,100 @@ class MapProvider extends ChangeNotifier {
   void undoLocation() {
     if (_tempLocation.length > 0) {
       _markers.removeWhere((mark) => mark.position == _tempLocation.last);
+
+      if (pointDistance) {
+        ///Remove previous distance first point to last point
+        _markers.removeWhere((mark) => mark.position == _endLoc);
+      }
+      
       _tempLocation.removeLast();
       if (_tempLocation.length == 0) {
         _tempPolygons.clear();
       }
+
+      if (_tempLocation.length > 1 && pointDistance) {
+        //Create distance marker for first point to last point
+        createEndLoc(_tempLocation[0], _tempLocation.last);
+
+      }
     }
+
+    if (_distanceLocation.length > 0) {
+      _markers.removeWhere((mark) => mark.position == _distanceLocation.last);
+      _distanceLocation.removeLast();
+    }
+
+    
+    notifyListeners();
+  }
+
+  ///Function to create distance marker
+  void createDistanceMarker(LatLng startLocation, LatLng _location) async {
+    LatLng center = await getCenterLatLong([startLocation, _location]);
+    String dist = await calculateDistance(startLocation, _location);
+    _distance = dist;
+    _distanceLocation.add(center);
+    notifyListeners();
+    
+    ///Create distance marker function
+    await Future.delayed((Duration(milliseconds: 100)));
+    Uint8List distanceIcon = await getUint8List(distanceKey);
+    setMarkerLocation(distance, center, distanceIcon);
+    notifyListeners();
+  }
+
+  ///Function to set end location marker
+  void createEndLoc(LatLng startLocation, LatLng _location) async {
+    LatLng center = await getCenterLatLong([startLocation, _location]);
+    String dist = await calculateDistance(startLocation, _location);
+    _distance = dist;
+    _endLoc = center;
+    notifyListeners();
+    
+    ///Create distance marker function
+    await Future.delayed((Duration(milliseconds: 100)));
+    Uint8List distanceIcon = await getUint8List(distanceKey);
+    setMarkerLocation(distance, center, distanceIcon);
     notifyListeners();
   }
 
   ///Function to handle onTap Map and get location
-  void onTapMap(LatLng _location) {
+  void onTapMap(LatLng _location) async {
+
     if (isEditMode == true) {
+      ///Find center position between two coordinate
+      if (_tempLocation.length > 0) {
+        if (_tempLocation.length > 1 && pointDistance) {
+          ///Remove previous distance first point to last point
+          await _markers.removeWhere((mark) => mark.position == _endLoc);
+
+          //Create distance marker for first point to last point
+          await createEndLoc(_tempLocation[0], _location);
+        }
+
+        if (pointDistance) {
+          ///Create distance marker for last positions
+          await createDistanceMarker(_tempLocation.last, _location);
+        }
+      }
+      
+      ///Adding new locations 
       _tempLocation.add(_location);
       if (_uniqueID == "") {
         _uniqueID = Random().nextInt(10000).toString();
       }
       
-      setMarkerLocation(_tempLocation.length.toString(), _location, _pointIcon);
+      ///Create marker point
+      Uint8List markerIcon = await getUint8List(markerKey);
+      setMarkerLocation(_tempLocation.length.toString(), _location, markerIcon);
       setTempToPolygon();
+
     }
     notifyListeners();
   }
 
   ///Function to set marker locations
-  void setMarkerLocation(String id, LatLng _location, BitmapDescriptor icon, {String title}) async {
-    Uint8List markerIcon = await getUint8List(markerKey);
+  void setMarkerLocation(String id, LatLng _location, Uint8List markerIcon, {String title}) async {
 
     _markers.add(Marker(
       markerId: MarkerId("${uniqueID + id}"),
@@ -242,12 +338,59 @@ class MapProvider extends ChangeNotifier {
   }
 
   ///Converting Widget to PNG
-  Future<Uint8List> getUint8List(GlobalKey markerKey) async {
+  Future<Uint8List> getUint8List(GlobalKey widgetKey) async {
     RenderRepaintBoundary boundary =
-    markerKey.currentContext.findRenderObject();
+    widgetKey.currentContext.findRenderObject();
     var image = await boundary.toImage(pixelRatio: 2.0);
     ByteData byteData = await image.toByteData(format: ImageByteFormat.png);
     return byteData.buffer.asUint8List();
+  }
+
+  ///Function to get center location between two coordinate
+  LatLng getCenterLatLong(List<LatLng> latLongList) {
+      double pi = math.pi / 180;
+      double xpi = 180 / math.pi;
+      double x = 0, y = 0, z = 0;
+
+      if (latLongList.length == 1)
+      {
+          return latLongList[0];
+      }
+      for (int i = 0; i < latLongList.length; i++) {
+        double latitude = latLongList[i].latitude * pi;
+        double longitude = latLongList[i].longitude * pi;
+        double c1 = math.cos(latitude);
+        x = x + c1 * math.cos(longitude);
+        y = y + c1 * math.sin(longitude);
+        z = z + math.sin(latitude);
+      }
+
+      int total = latLongList.length;
+      x = x / total;
+      y = y / total;
+      z = z / total;
+
+      double centralLongitude = math.atan2(y, x);
+      double centralSquareRoot = math.sqrt(x * x + y * y);
+      double centralLatitude = math.atan2(z, centralSquareRoot);
+
+      return LatLng(centralLatitude*xpi,centralLongitude*xpi);
+  }
+
+  ///Calculate distance between two location
+  String calculateDistance(LatLng firstLocation, LatLng secondLocation){
+    var p = 0.017453292519943295;
+    var c = cos;
+    var a = 0.5 - c((secondLocation.latitude - firstLocation.latitude) * p)/2 + 
+          c(firstLocation.latitude * p) * c(secondLocation.latitude * p) * 
+          (1 - c((secondLocation.longitude - firstLocation.longitude) * p))/2;
+    var distance = 12742 * asin(sqrt(a));
+
+    if (distance < 1) {
+      return (double.parse(distance.toStringAsFixed(3)) * 1000).toString().split(".")[0] + " m";
+    } else {
+      return double.parse(distance.toStringAsFixed(2)).toString() + " km";
+    }
   }
 
 }
