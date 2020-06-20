@@ -3,6 +3,7 @@ library polymaker;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:polymaker/core/models/location_polygon.dart';
+import 'package:polymaker/core/models/trackingmode.dart';
 import 'package:polymaker/ui/screens/map_screen.dart';
 
 class PolyMaker {
@@ -39,6 +40,8 @@ class PolyMaker {
   ///Property to respond to user-defined camera pos
   final LatLng targetCameraPosition;
 
+  final TrackingMode trackingMode;
+
   PolyMaker(
       {@required this.context,
       this.toolColor,
@@ -50,10 +53,11 @@ class PolyMaker {
       this.iconUndoEdit,
       this.autoEditMode,
       this.pointDistance,
-      this.targetCameraPosition});
+      this.targetCameraPosition,
+      this.trackingMode});
 
   ///Function to open location maker and get result locations
-  Future<List<LocationPolygon>> getLocation() async {
+  Future<List<LatLng>> getLocation() async {
     final result = await Navigator.of(context).push(MaterialPageRoute(
         builder: (context) => MapScreen(
               toolColor: toolColor,
@@ -65,25 +69,26 @@ class PolyMaker {
               iconUndoEdit: iconUndoEdit,
               autoEditMode: autoEditMode,
               pointDistance: pointDistance,
+              trackingMode: trackingMode,
+              targetCameraPosition: targetCameraPosition,
             )));
     return result;
   }
 }
 
 ///Function to open location maker
-Future<List<LocationPolygon>> getLocation(
-  BuildContext context, {
-  Color toolColor,
-  Color polygonColor,
-  IconData iconLocation,
-  IconData iconEditMode,
-  IconData iconCloseEdit,
-  IconData iconDoneEdit,
-  IconData iconUndoEdit,
-  bool autoEditMode,
-  bool pointDistance,
-  LatLng targetCameraPosition,
-}) async {
+Future<List<LatLng>> getLocation(BuildContext context,
+    {Color toolColor,
+    Color polygonColor,
+    IconData iconLocation,
+    IconData iconEditMode,
+    IconData iconCloseEdit,
+    IconData iconDoneEdit,
+    IconData iconUndoEdit,
+    bool autoEditMode,
+    bool pointDistance,
+    LatLng targetCameraPosition,
+    TrackingMode trackingMode}) async {
   return await PolyMaker(
           context: context,
           toolColor: toolColor != null ? toolColor : Colors.black87,
@@ -96,8 +101,9 @@ Future<List<LocationPolygon>> getLocation(
           iconUndoEdit: iconUndoEdit != null ? iconUndoEdit : Icons.undo,
           autoEditMode: autoEditMode != null ? autoEditMode : false,
           pointDistance: pointDistance != null ? pointDistance : true,
-          targetCameraPosition: targetCameraPosition != null
-              ? targetCameraPosition
-              : LatLng(null, null))
+          targetCameraPosition:
+              targetCameraPosition != null ? targetCameraPosition : null,
+          trackingMode:
+              trackingMode != null ? trackingMode : TrackingMode.PLANAR)
       .getLocation();
 }

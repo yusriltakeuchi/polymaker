@@ -58,7 +58,7 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   String distance = "awal";
-
+  bool isSatellite = false;
   @override
   Widget build(BuildContext context) {
     //To modify status bar
@@ -77,8 +77,7 @@ class _MapScreenState extends State<MapScreen> {
           builder: (contex, mapProv, _) {
             //Get first location
             if (mapProv.cameraPosition == null) {
-              if (widget.targetCameraPosition.latitude != null &&
-                  widget.targetCameraPosition.longitude != null) {
+              if (widget.targetCameraPosition != null) {
                 mapProv.initCamera(widget.autoEditMode, widget.pointDistance,
                     targetCameraPosition: widget.targetCameraPosition);
               } else {
@@ -105,12 +104,14 @@ class _MapScreenState extends State<MapScreen> {
                             compassEnabled: false,
                             tiltGesturesEnabled: false,
                             markers: mapProv.markers,
-                            mapType: MapType.normal,
+                            mapType: isSatellite
+                                ? MapType.satellite
+                                : MapType.normal,
                             initialCameraPosition: mapProv.cameraPosition,
                             onMapCreated: mapProv.onMapCreated,
                             mapToolbarEnabled: false,
-                            onTap: (loc) =>
-                                mapProv.onTapMap(loc, widget.trackingMode),
+                            onTap: (loc) => mapProv.onTapMap(loc,
+                                trackingMode: widget.trackingMode),
                             polygons: widget.trackingMode == TrackingMode.PLANAR
                                 ? mapProv.polygons
                                 : null,
@@ -269,6 +270,28 @@ class _MapScreenState extends State<MapScreen> {
                                 borderRadius: BorderRadius.circular(50)),
                             child: Icon(
                               widget.iconLocation,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        //TODO: add button to change map style to sattelite and normal.
+                        InkWell(
+                          onTap: () {
+                            if (isSatellite) {
+                              isSatellite = false;
+                            } else
+                              isSatellite = true;
+                            setState(() {});
+                          },
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                                color: widget.toolColor,
+                                borderRadius: BorderRadius.circular(50)),
+                            child: Icon(
+                              isSatellite ? Icons.map : Icons.satellite,
                               color: Colors.white,
                             ),
                           ),

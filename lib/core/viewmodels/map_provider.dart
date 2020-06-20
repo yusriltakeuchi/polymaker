@@ -281,7 +281,8 @@ class MapProvider extends ChangeNotifier {
   }
 
   ///Function to handle onTap Map and get location
-  void onTapMap(LatLng _location, TrackingMode trackingMode) async {
+  void onTapMap(LatLng _location,
+      {TrackingMode trackingMode = TrackingMode.LINEAR}) async {
     if (isEditMode == true) {
       ///Find center position between two coordinate
       if (_tempLocation.length > 0) {
