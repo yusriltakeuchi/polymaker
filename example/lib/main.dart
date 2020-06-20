@@ -41,9 +41,8 @@ class HomeBody extends StatefulWidget {
 class _HomeBodyState extends State<HomeBody> {
   List<LatLng> locationList;
   void getLocation() async {
-    var result = await polymaker.getLocation(context,
-        targetCameraPosition: LatLng(0.881078, 123.550343),
-        trackingMode: TrackingMode.LINEAR);
+    var result =
+        await polymaker.getLocation(context, trackingMode: TrackingMode.PLANAR);
     if (result != null) {
       setState(() {
         locationList = result;

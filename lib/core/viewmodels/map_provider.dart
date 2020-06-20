@@ -282,7 +282,47 @@ class MapProvider extends ChangeNotifier {
 
   ///Function to handle onTap Map and get location
   void onTapMap(LatLng _location,
-      {TrackingMode trackingMode = TrackingMode.LINEAR}) async {
+      {TrackingMode trackingMode = TrackingMode.PLANAR}) async {
+    if (isEditMode == true) {
+      ///Find center position between two coordinate
+      if (_tempLocation.length > 0) {
+        if (_tempLocation.length > 1 && pointDistance) {
+          ///Remove previous distance first point to last point
+          await removeMarker(_endLoc);
+
+          //Create distance marker for first point to last point
+          await createEndLoc(_tempLocation[0], _location);
+        }
+
+        if (pointDistance) {
+          ///Create distance marker for last positions
+          await createDistanceMarker(_tempLocation.last, _location);
+        }
+      }
+
+      ///Adding new locations
+      _tempLocation.add(_location);
+      if (_uniqueID == "") {
+        _uniqueID = Random().nextInt(10000).toString();
+      }
+
+      ///Create marker point
+      Uint8List markerIcon = await getUint8List(markerKey);
+      setMarkerLocation(_tempLocation.length.toString(), _location, markerIcon);
+      if (trackingMode == TrackingMode.PLANAR) {
+        setTempToPolygon();
+      } else {
+        setTempToPolyline();
+      }
+    }
+    notifyListeners();
+  }
+
+  ///TODO: add function to add location from gps
+
+  void addGpsLocation({TrackingMode trackingMode = TrackingMode.PLANAR}) async {
+    var _locationData = await location.getLocation();
+    var _location = new LatLng(_locationData.latitude, _locationData.longitude);
     if (isEditMode == true) {
       ///Find center position between two coordinate
       if (_tempLocation.length > 0) {
