@@ -31,6 +31,8 @@ class PolyMaker {
   ///Property to cusstomize undo icon
   final IconData iconUndoEdit;
 
+  final IconData iconGPSPoint;
+
   ///Property to auto edit mode when maps open
   final bool autoEditMode;
 
@@ -51,6 +53,7 @@ class PolyMaker {
       this.iconCloseEdit,
       this.iconDoneEdit,
       this.iconUndoEdit,
+      this.iconGPSPoint,
       this.autoEditMode,
       this.pointDistance,
       this.targetCameraPosition,
@@ -67,6 +70,7 @@ class PolyMaker {
               iconCloseEdit: iconCloseEdit,
               iconDoneEdit: iconDoneEdit,
               iconUndoEdit: iconUndoEdit,
+              iconGPSPoint: iconGPSPoint,
               autoEditMode: autoEditMode,
               pointDistance: pointDistance,
               trackingMode: trackingMode,
@@ -85,6 +89,7 @@ Future<List<LatLng>> getLocation(BuildContext context,
     IconData iconCloseEdit,
     IconData iconDoneEdit,
     IconData iconUndoEdit,
+    IconData iconGPSPoint,
     bool autoEditMode,
     bool pointDistance,
     LatLng targetCameraPosition,
@@ -93,12 +98,14 @@ Future<List<LatLng>> getLocation(BuildContext context,
           context: context,
           toolColor: toolColor != null ? toolColor : Colors.black87,
           polygonColor: polygonColor != null ? polygonColor : Colors.red,
-          iconLocation: iconLocation != null ? iconLocation : Icons.location_on,
+          iconLocation: iconLocation != null ? iconLocation : Icons.my_location,
           iconEditMode:
               iconEditMode != null ? iconEditMode : Icons.edit_location,
           iconCloseEdit: iconCloseEdit != null ? iconCloseEdit : Icons.close,
           iconDoneEdit: iconDoneEdit != null ? iconDoneEdit : Icons.check,
           iconUndoEdit: iconUndoEdit != null ? iconUndoEdit : Icons.undo,
+          iconGPSPoint:
+              iconGPSPoint != null ? iconGPSPoint : Icons.add_location,
           autoEditMode: autoEditMode != null ? autoEditMode : false,
           pointDistance: pointDistance != null ? pointDistance : true,
           targetCameraPosition:

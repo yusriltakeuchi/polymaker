@@ -28,6 +28,8 @@ class MapScreen extends StatefulWidget {
   ///Property to cusstomize undo icon
   final IconData iconUndoEdit;
 
+  final IconData iconGPSPoint;
+
   ///Property to auto edit mode when maps open
   final bool autoEditMode;
 
@@ -48,6 +50,7 @@ class MapScreen extends StatefulWidget {
       this.iconCloseEdit,
       this.iconDoneEdit,
       this.iconUndoEdit,
+      this.iconGPSPoint,
       this.autoEditMode,
       this.pointDistance,
       this.trackingMode,
@@ -325,7 +328,7 @@ class _MapScreenState extends State<MapScreen> {
                                       color: widget.toolColor,
                                       borderRadius: BorderRadius.circular(50)),
                                   child: Icon(
-                                    Icons.add_location,
+                                    widget.iconGPSPoint,
                                     color: Colors.white,
                                   ),
                                 ),
