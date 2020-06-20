@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:polymaker/core/models/trackingmode.dart';
 import 'package:polymaker/core/viewmodels/map_provider.dart';
 import 'package:polymaker/ui/Animation/FadeAnimation.dart';
 import 'package:provider/provider.dart';
 
 class MapScreen extends StatefulWidget {
-
   ///Property to customize tool color
   final Color toolColor;
 
@@ -34,6 +34,11 @@ class MapScreen extends StatefulWidget {
   ///Property to enable and disable point distance
   final bool pointDistance;
 
+  //property to determine tracking mode
+  final TrackingMode trackingMode;
+
+  final LatLng targetCameraPosition;
+
   MapScreen(
       {this.toolColor,
       this.polygonColor,
@@ -43,7 +48,9 @@ class MapScreen extends StatefulWidget {
       this.iconDoneEdit,
       this.iconUndoEdit,
       this.autoEditMode,
-      this.pointDistance});
+      this.pointDistance,
+      this.trackingMode,
+      this.targetCameraPosition});
 
   @override
   _MapScreenState createState() => _MapScreenState();
@@ -70,7 +77,13 @@ class _MapScreenState extends State<MapScreen> {
           builder: (contex, mapProv, _) {
             //Get first location
             if (mapProv.cameraPosition == null) {
-              mapProv.initCamera(widget.autoEditMode, widget.pointDistance);
+              if (widget.targetCameraPosition.latitude != null &&
+                  widget.targetCameraPosition.longitude != null) {
+                mapProv.initCamera(widget.autoEditMode, widget.pointDistance,
+                    targetCameraPosition: widget.targetCameraPosition);
+              } else {
+                mapProv.initCamera(widget.autoEditMode, widget.pointDistance);
+              }
               mapProv.setPolygonColor(widget.polygonColor);
               return Center(
                 child: CircularProgressIndicator(),
@@ -80,14 +93,8 @@ class _MapScreenState extends State<MapScreen> {
             return Center(
               child: Stack(
                 children: <Widget>[
-                  Positioned(
-                    top: -300,
-                    child: mapDistance()
-                  ),
-                  Positioned(
-                    top: -300,
-                    child: mapIcon()
-                  ),
+                  Positioned(top: -300, child: mapDistance()),
+                  Positioned(top: -300, child: mapIcon()),
                   mapProv.cameraPosition != null
                       ? Container(
                           width: MediaQuery.of(context).size.width,
@@ -102,8 +109,15 @@ class _MapScreenState extends State<MapScreen> {
                             initialCameraPosition: mapProv.cameraPosition,
                             onMapCreated: mapProv.onMapCreated,
                             mapToolbarEnabled: false,
-                            onTap: (loc) => mapProv.onTapMap(loc),
-                            polygons: mapProv.polygons,
+                            onTap: (loc) =>
+                                mapProv.onTapMap(loc, widget.trackingMode),
+                            polygons: widget.trackingMode == TrackingMode.PLANAR
+                                ? mapProv.polygons
+                                : null,
+                            polylines:
+                                widget.trackingMode == TrackingMode.LINEAR
+                                    ? mapProv.polylines
+                                    : null,
                           ),
                         )
                       : Center(
@@ -128,8 +142,8 @@ class _MapScreenState extends State<MapScreen> {
           child: Container(
             width: 32,
             height: 32,
-            decoration:
-                BoxDecoration(color: widget.polygonColor, shape: BoxShape.circle),
+            decoration: BoxDecoration(
+                color: widget.polygonColor, shape: BoxShape.circle),
             child: Center(
               child: Text(
                 (mapProv.tempLocation.length + 1).toString(),
@@ -151,17 +165,19 @@ class _MapScreenState extends State<MapScreen> {
         return RepaintBoundary(
           key: mapProv.distanceKey,
           child: Container(
-            width: mapProv.distance.length > 6 ? (mapProv.distance.length >= 9 ? 100 : 80) : 64,
+            width: mapProv.distance.length > 6
+                ? (mapProv.distance.length >= 9 ? 100 : 80)
+                : 64,
             height: 32,
             decoration: BoxDecoration(
-              color: widget.toolColor,
-              borderRadius: BorderRadius.circular(10)
-            ),
+                color: widget.toolColor,
+                borderRadius: BorderRadius.circular(10)),
             child: Center(
-              child: Text(
-                mapProv.distance,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)
-              ),
+              child: Text(mapProv.distance,
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white)),
             ),
           ),
         );
@@ -208,7 +224,7 @@ class _MapScreenState extends State<MapScreen> {
                             ? FadeAnimation(
                                 delay: 0.5,
                                 child: InkWell(
-                                  onTap: () => mapProv.savePolygon(context),
+                                  onTap: () => mapProv.saveTracking(context),
                                   child: Container(
                                     width: 40,
                                     height: 40,

@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
@@ -11,14 +10,15 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
-import 'package:polymaker/core/models/location_polygon.dart';
+import 'package:polymaker/core/models/trackingmode.dart';
 
 class MapProvider extends ChangeNotifier {
-
   //------------------------//
   //   PROPERTY SECTIONS    //
   //------------------------//
-  
+
+  //Property tracking Mode;
+
   ///Property zoom camera
   double _cameraZoom = 16;
   double get cameraZoom => _cameraZoom;
@@ -61,7 +61,7 @@ class MapProvider extends ChangeNotifier {
   ///Property to handle edit mode
   bool _isEditMode = false;
   bool get isEditMode => _isEditMode;
-  
+
   ///Property temporary polygon list
   Set<Polygon> _tempPolygons = new Set();
   Set<Polygon> get tempPolygons => _tempPolygons;
@@ -69,6 +69,13 @@ class MapProvider extends ChangeNotifier {
   ///Property polygon list
   Set<Polygon> _polygons = new Set();
   Set<Polygon> get polygons => _polygons;
+
+  //Property temporary polyline list
+  Set<Polyline> _tempPolylines = new Set();
+  Set<Polyline> get tempPolylines => _tempPolylines;
+
+  Set<Polyline> _polylines = new Set();
+  Set<Polyline> get polylines => _polylines;
 
   ///Property temporary location
   List<LatLng> _tempLocation = new List();
@@ -106,23 +113,31 @@ class MapProvider extends ChangeNotifier {
   bool _pointDistance = true;
   bool get pointDistance => _pointDistance;
 
+  //Constructor
+
   //------------------------//
   //   FUNCTION SECTIONS   //
   //------------------------//
 
   ///Function to initialize camera
-  void initCamera(bool autoEditMode, bool pointDist) async {
-    
+  void initCamera(bool autoEditMode, bool pointDist,
+      {LatLng targetCameraPosition}) async {
+    if (targetCameraPosition != null) {
+      _sourceLocation = targetCameraPosition;
+      //notifyListeners();
+    } else {
+      ///Get current locations
+      await initLocation();
+    }
+
     ///Get current locations
-    await initLocation();
 
     ///Set current location to camera
     _cameraPosition = CameraPosition(
-      zoom: cameraZoom,
-      bearing: cameraBearing,
-      tilt: cameraTilt,
-      target: sourceLocation
-    );
+        zoom: cameraZoom,
+        bearing: cameraBearing,
+        tilt: cameraTilt,
+        target: sourceLocation);
 
     ///Auto mode on
     if (autoEditMode) {
@@ -152,22 +167,22 @@ class MapProvider extends ChangeNotifier {
   Future<void> initLocation() async {
     var locData = await location.getLocation();
     _sourceLocation = LatLng(locData.latitude, locData.longitude);
-    
+
     notifyListeners();
   }
-  
+
   ///Function to handle when maps created
   void onMapCreated(GoogleMapController controller) async {
-    
     ///Loading map style
-    _mapStyle = await rootBundle.loadString("packages/polymaker/assets/map_style.txt");
+    _mapStyle =
+        await rootBundle.loadString("packages/polymaker/assets/map_style.txt");
 
     _completer.complete(controller);
     _controller = controller;
 
     ///Set style to map
     _controller.setMapStyle(_mapStyle);
-    
+
     notifyListeners();
   }
 
@@ -175,8 +190,11 @@ class MapProvider extends ChangeNotifier {
   void changeCameraPosition(LatLng location) {
     ///Moving maps camera
     _controller.animateCamera(CameraUpdate.newLatLngZoom(
-      LatLng(location.latitude, location.longitude,), cameraZoom)
-    );
+        LatLng(
+          location.latitude,
+          location.longitude,
+        ),
+        cameraZoom));
 
     notifyListeners();
   }
@@ -192,7 +210,6 @@ class MapProvider extends ChangeNotifier {
       _tempLocation.clear();
       _distanceLocation.clear();
       _markers.clear();
-
     } else {
       _markers.clear();
     }
@@ -208,7 +225,7 @@ class MapProvider extends ChangeNotifier {
         ///Remove previous distance first point to last point
         _markers.removeWhere((mark) => mark.position == _endLoc);
       }
-      
+
       _tempLocation.removeLast();
       if (_tempLocation.length == 0) {
         _tempPolygons.clear();
@@ -217,7 +234,6 @@ class MapProvider extends ChangeNotifier {
       if (_tempLocation.length > 1 && pointDistance) {
         //Create distance marker for first point to last point
         createEndLoc(_tempLocation[0], _tempLocation.last);
-
       }
     }
 
@@ -226,18 +242,18 @@ class MapProvider extends ChangeNotifier {
       _distanceLocation.removeLast();
     }
 
-    
     notifyListeners();
   }
 
   ///Function to create distance marker
-  Future<void> createDistanceMarker(LatLng startLocation, LatLng _location) async {
+  Future<void> createDistanceMarker(
+      LatLng startLocation, LatLng _location) async {
     LatLng center = await getCenterLatLong([startLocation, _location]);
     String dist = await calculateDistance(startLocation, _location);
     _distance = dist;
     _distanceLocation.add(center);
     notifyListeners();
-    
+
     ///Create distance marker function
     await Future.delayed((Duration(milliseconds: 100)));
     Uint8List distanceIcon = await getUint8List(distanceKey);
@@ -252,7 +268,7 @@ class MapProvider extends ChangeNotifier {
     _distance = dist;
     _endLoc = center;
     notifyListeners();
-    
+
     ///Create distance marker function
     await Future.delayed((Duration(milliseconds: 100)));
     Uint8List distanceIcon = await getUint8List(distanceKey);
@@ -265,8 +281,7 @@ class MapProvider extends ChangeNotifier {
   }
 
   ///Function to handle onTap Map and get location
-  void onTapMap(LatLng _location) async {
-
+  void onTapMap(LatLng _location, TrackingMode trackingMode) async {
     if (isEditMode == true) {
       ///Find center position between two coordinate
       if (_tempLocation.length > 0) {
@@ -283,31 +298,35 @@ class MapProvider extends ChangeNotifier {
           await createDistanceMarker(_tempLocation.last, _location);
         }
       }
-      
-      ///Adding new locations 
+
+      ///Adding new locations
       _tempLocation.add(_location);
       if (_uniqueID == "") {
         _uniqueID = Random().nextInt(10000).toString();
       }
-      
+
       ///Create marker point
       Uint8List markerIcon = await getUint8List(markerKey);
       setMarkerLocation(_tempLocation.length.toString(), _location, markerIcon);
-      setTempToPolygon();
-
+      if (trackingMode == TrackingMode.PLANAR) {
+        setTempToPolygon();
+      } else {
+        setTempToPolyline();
+      }
     }
     notifyListeners();
   }
 
   ///Function to set marker locations
-  void setMarkerLocation(String id, LatLng _location, Uint8List markerIcon, {String title}) async {
-
+  void setMarkerLocation(String id, LatLng _location, Uint8List markerIcon,
+      {String title}) async {
     _markers.add(Marker(
-      markerId: MarkerId("${uniqueID + id}"),
-      position: _location,
-      icon: BitmapDescriptor.fromBytes(markerIcon),
-      infoWindow: title != null ? InfoWindow(title: title, snippet: "Area Polygon Nomor $id") : null
-    ));
+        markerId: MarkerId("${uniqueID + id}"),
+        position: _location,
+        icon: BitmapDescriptor.fromBytes(markerIcon),
+        infoWindow: title != null
+            ? InfoWindow(title: title, snippet: "Area Polygon Nomor $id")
+            : null));
 
     notifyListeners();
   }
@@ -315,32 +334,49 @@ class MapProvider extends ChangeNotifier {
   ///Function to set temporary polygons to polygons
   void setTempToPolygon() {
     if (_tempPolygons != null) {
-      _tempPolygons.removeWhere((poly) => poly.polygonId.toString() == uniqueID);
+      _tempPolygons
+          .removeWhere((poly) => poly.polygonId.toString() == uniqueID);
     }
 
     _tempPolygons.add(Polygon(
-      polygonId: PolygonId(uniqueID),
-      points: _tempLocation,
-      strokeWidth: 3,
-      fillColor: _polygonColor.withOpacity(0.3),
-      strokeColor: _polygonColor)
-    );
+        polygonId: PolygonId(uniqueID),
+        points: _tempLocation,
+        strokeWidth: 3,
+        fillColor: _polygonColor.withOpacity(0.3),
+        strokeColor: _polygonColor));
     _polygons = _tempPolygons;
     notifyListeners();
   }
 
-  ///Function to save polygon to database
-  void savePolygon(BuildContext context) {
-    if (_tempLocation.length > 0) {
+  void setTempToPolyline() {
+    if (_tempPolylines != null) {
+      _tempPolylines
+          .removeWhere((line) => line.polylineId.toString() == uniqueID);
+    }
 
-      var locationPolygon = new List<LocationPolygon>();
-      _tempLocation.forEach((loc) {
-        locationPolygon.add(LocationPolygon(
-          latitude: loc.latitude,
-          longitude: loc.longitude
-        ));
-      });
-      Navigator.pop(context, locationPolygon);
+    _tempPolylines.add(
+      Polyline(
+        polylineId: PolylineId(uniqueID),
+        points: _tempLocation,
+        width: 8,
+        color: _polygonColor.withOpacity(0.3),
+      ),
+    );
+    _polylines = _tempPolylines;
+    notifyListeners();
+  }
+
+  ///Function to save tracking points to database
+  void saveTracking(BuildContext context) {
+    if (_tempLocation.length > 0) {
+      // var locationPolygon = new List<LocationPolygon>();
+      // _tempLocation.forEach((loc) {
+      //   locationPolygon.add(LocationPolygon(
+      //     latitude: loc.latitude,
+      //     longitude: loc.longitude
+      //   ));
+      // });
+      Navigator.pop(context, _tempLocation);
     } else {
       Navigator.pop(context, null);
     }
@@ -349,7 +385,7 @@ class MapProvider extends ChangeNotifier {
   ///Converting Widget to PNG
   Future<Uint8List> getUint8List(GlobalKey widgetKey) async {
     RenderRepaintBoundary boundary =
-    widgetKey.currentContext.findRenderObject();
+        widgetKey.currentContext.findRenderObject();
     var image = await boundary.toImage(pixelRatio: 2.0);
     ByteData byteData = await image.toByteData(format: ImageByteFormat.png);
     return byteData.buffer.asUint8List();
@@ -357,50 +393,55 @@ class MapProvider extends ChangeNotifier {
 
   ///Function to get center location between two coordinate
   Future<LatLng> getCenterLatLong(List<LatLng> latLongList) async {
-      double pi = math.pi / 180;
-      double xpi = 180 / math.pi;
-      double x = 0, y = 0, z = 0;
+    double pi = math.pi / 180;
+    double xpi = 180 / math.pi;
+    double x = 0, y = 0, z = 0;
 
-      if (latLongList.length == 1)
-      {
-          return latLongList[0];
-      }
+    if (latLongList.length == 1) {
+      return latLongList[0];
+    }
 
-      for (int i = 0; i < latLongList.length; i++) {
-        double latitude = latLongList[i].latitude * pi;
-        double longitude = latLongList[i].longitude * pi;
-        double c1 = math.cos(latitude);
-        x = x + c1 * math.cos(longitude);
-        y = y + c1 * math.sin(longitude);
-        z = z + math.sin(latitude);
-      }
+    for (int i = 0; i < latLongList.length; i++) {
+      double latitude = latLongList[i].latitude * pi;
+      double longitude = latLongList[i].longitude * pi;
+      double c1 = math.cos(latitude);
+      x = x + c1 * math.cos(longitude);
+      y = y + c1 * math.sin(longitude);
+      z = z + math.sin(latitude);
+    }
 
-      int total = latLongList.length;
-      x = x / total;
-      y = y / total;
-      z = z / total;
+    int total = latLongList.length;
+    x = x / total;
+    y = y / total;
+    z = z / total;
 
-      double centralLongitude = math.atan2(y, x);
-      double centralSquareRoot = math.sqrt(x * x + y * y);
-      double centralLatitude = math.atan2(z, centralSquareRoot);
+    double centralLongitude = math.atan2(y, x);
+    double centralSquareRoot = math.sqrt(x * x + y * y);
+    double centralLatitude = math.atan2(z, centralSquareRoot);
 
-      return LatLng(centralLatitude*xpi,centralLongitude*xpi);
+    return LatLng(centralLatitude * xpi, centralLongitude * xpi);
   }
 
   ///Calculate distance between two location
-  Future<String> calculateDistance(LatLng firstLocation, LatLng secondLocation) async {
+  Future<String> calculateDistance(
+      LatLng firstLocation, LatLng secondLocation) async {
     var p = 0.017453292519943295;
     var c = cos;
-    var a = 0.5 - c((secondLocation.latitude - firstLocation.latitude) * p)/2 + 
-          c(firstLocation.latitude * p) * c(secondLocation.latitude * p) * 
-          (1 - c((secondLocation.longitude - firstLocation.longitude) * p))/2;
+    var a = 0.5 -
+        c((secondLocation.latitude - firstLocation.latitude) * p) / 2 +
+        c(firstLocation.latitude * p) *
+            c(secondLocation.latitude * p) *
+            (1 - c((secondLocation.longitude - firstLocation.longitude) * p)) /
+            2;
     var distance = 12742 * asin(sqrt(a));
 
     if (distance < 1) {
-      return (double.parse(distance.toStringAsFixed(3)) * 1000).toString().split(".")[0] + " m";
+      return (double.parse(distance.toStringAsFixed(3)) * 1000)
+              .toString()
+              .split(".")[0] +
+          " m";
     } else {
       return double.parse(distance.toStringAsFixed(2)).toString() + " km";
     }
   }
-
 }

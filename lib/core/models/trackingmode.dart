@@ -1,0 +1,1 @@
+enum TrackingMode { LINEAR, PLANAR }
