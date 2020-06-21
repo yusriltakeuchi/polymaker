@@ -215,12 +215,16 @@ class _MapScreenState extends State<MapScreen> {
                                         width: 40,
                                         height: 40,
                                         decoration: BoxDecoration(
-                                            color: widget.toolColor,
+                                            color: isSatellite
+                                                ? Colors.white
+                                                : widget.toolColor,
                                             borderRadius:
                                                 BorderRadius.circular(50)),
                                         child: Icon(
                                           widget.iconUndoEdit,
-                                          color: Colors.white,
+                                          color: isSatellite
+                                              ? Colors.black87
+                                              : Colors.white,
                                         ),
                                       ),
                                     ),
@@ -238,12 +242,16 @@ class _MapScreenState extends State<MapScreen> {
                                         width: 40,
                                         height: 40,
                                         decoration: BoxDecoration(
-                                            color: widget.toolColor,
+                                            color: isSatellite
+                                                ? Colors.white
+                                                : widget.toolColor,
                                             borderRadius:
                                                 BorderRadius.circular(50)),
                                         child: Icon(
                                           widget.iconDoneEdit,
-                                          color: Colors.white,
+                                          color: isSatellite
+                                              ? Colors.black87
+                                              : Colors.white,
                                         ),
                                       ),
                                     ),
@@ -257,13 +265,17 @@ class _MapScreenState extends State<MapScreen> {
                                 width: 40,
                                 height: 40,
                                 decoration: BoxDecoration(
-                                    color: widget.toolColor,
+                                    color: isSatellite
+                                        ? Colors.white
+                                        : widget.toolColor,
                                     borderRadius: BorderRadius.circular(50)),
                                 child: Icon(
                                   mapProv.isEditMode == false
                                       ? widget.iconEditMode
                                       : widget.iconCloseEdit,
-                                  color: Colors.white,
+                                  color: isSatellite
+                                      ? Colors.black87
+                                      : Colors.white,
                                 ),
                               ),
                             ),
@@ -275,11 +287,15 @@ class _MapScreenState extends State<MapScreen> {
                                 width: 40,
                                 height: 40,
                                 decoration: BoxDecoration(
-                                    color: widget.toolColor,
+                                    color: isSatellite
+                                        ? Colors.white
+                                        : widget.toolColor,
                                     borderRadius: BorderRadius.circular(50)),
                                 child: Icon(
                                   widget.iconLocation,
-                                  color: Colors.white,
+                                  color: isSatellite
+                                      ? Colors.black87
+                                      : Colors.white,
                                 ),
                               ),
                             ),
@@ -297,11 +313,15 @@ class _MapScreenState extends State<MapScreen> {
                                 width: 40,
                                 height: 40,
                                 decoration: BoxDecoration(
-                                    color: widget.toolColor,
+                                    color: isSatellite
+                                        ? Colors.white
+                                        : widget.toolColor,
                                     borderRadius: BorderRadius.circular(50)),
                                 child: Icon(
                                   isSatellite ? Icons.map : Icons.satellite,
-                                  color: Colors.white,
+                                  color: isSatellite
+                                      ? Colors.black87
+                                      : Colors.white,
                                 ),
                               ),
                             ),
@@ -325,11 +345,15 @@ class _MapScreenState extends State<MapScreen> {
                                   width: 40,
                                   height: 40,
                                   decoration: BoxDecoration(
-                                      color: widget.toolColor,
+                                      color: isSatellite
+                                          ? Colors.white
+                                          : widget.toolColor,
                                       borderRadius: BorderRadius.circular(50)),
                                   child: Icon(
                                     widget.iconGPSPoint,
-                                    color: Colors.white,
+                                    color: isSatellite
+                                        ? Colors.black87
+                                        : Colors.white,
                                   ),
                                 ),
                               ),
