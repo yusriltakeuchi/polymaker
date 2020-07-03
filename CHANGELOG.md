@@ -1,3 +1,11 @@
+## [0.0.4] - 2020-05-18
+ 
+* getLocation return type is now Future<List<LatLng>>
+* Added Tracking Mode Options [TrackingMode.LINEAR and TrackingMode.PLANAR]
+* Added initial camera locations
+* Added Map Type Control
+* Added functionality to use GPS data as tracking points
+
 ## [0.0.3+1] - 2020-05-18
  
 * Fixing some warning
