@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:polymaker/core/models/trackingmode.dart';
 import 'package:polymaker/core/viewmodels/map_provider.dart';
 import 'package:polymaker/ui/Animation/FadeAnimation.dart';
 import 'package:provider/provider.dart';
 
 class MapScreen extends StatefulWidget {
-
   ///Property to customize tool color
   final Color toolColor;
 
@@ -28,11 +28,19 @@ class MapScreen extends StatefulWidget {
   ///Property to cusstomize undo icon
   final IconData iconUndoEdit;
 
+  final IconData iconGPSPoint;
+
   ///Property to auto edit mode when maps open
   final bool autoEditMode;
 
   ///Property to enable and disable point distance
   final bool pointDistance;
+
+  //property to determine tracking mode
+  final TrackingMode trackingMode;
+
+  final LatLng
+      targetCameraPosition; //if this is null it means user is opting to use GPS tracking
 
   MapScreen(
       {this.toolColor,
@@ -42,8 +50,11 @@ class MapScreen extends StatefulWidget {
       this.iconCloseEdit,
       this.iconDoneEdit,
       this.iconUndoEdit,
+      this.iconGPSPoint,
       this.autoEditMode,
-      this.pointDistance});
+      this.pointDistance,
+      this.trackingMode,
+      this.targetCameraPosition});
 
   @override
   _MapScreenState createState() => _MapScreenState();
@@ -51,7 +62,7 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   String distance = "awal";
-
+  bool isSatellite = false;
   @override
   Widget build(BuildContext context) {
     //To modify status bar
@@ -70,7 +81,12 @@ class _MapScreenState extends State<MapScreen> {
           builder: (contex, mapProv, _) {
             //Get first location
             if (mapProv.cameraPosition == null) {
-              mapProv.initCamera(widget.autoEditMode, widget.pointDistance);
+              if (widget.targetCameraPosition != null) {
+                mapProv.initCamera(widget.autoEditMode, widget.pointDistance,
+                    targetCameraPosition: widget.targetCameraPosition);
+              } else {
+                mapProv.initCamera(widget.autoEditMode, widget.pointDistance);
+              }
               mapProv.setPolygonColor(widget.polygonColor);
               return Center(
                 child: CircularProgressIndicator(),
@@ -80,14 +96,8 @@ class _MapScreenState extends State<MapScreen> {
             return Center(
               child: Stack(
                 children: <Widget>[
-                  Positioned(
-                    top: -300,
-                    child: mapDistance()
-                  ),
-                  Positioned(
-                    top: -300,
-                    child: mapIcon()
-                  ),
+                  Positioned(top: -300, child: mapDistance()),
+                  Positioned(top: -300, child: mapIcon()),
                   mapProv.cameraPosition != null
                       ? Container(
                           width: MediaQuery.of(context).size.width,
@@ -98,12 +108,21 @@ class _MapScreenState extends State<MapScreen> {
                             compassEnabled: false,
                             tiltGesturesEnabled: false,
                             markers: mapProv.markers,
-                            mapType: MapType.normal,
+                            mapType: isSatellite
+                                ? MapType.satellite
+                                : MapType.normal,
                             initialCameraPosition: mapProv.cameraPosition,
                             onMapCreated: mapProv.onMapCreated,
                             mapToolbarEnabled: false,
-                            onTap: (loc) => mapProv.onTapMap(loc),
-                            polygons: mapProv.polygons,
+                            onTap: (loc) => mapProv.onTapMap(loc,
+                                trackingMode: widget.trackingMode),
+                            polygons: widget.trackingMode == TrackingMode.PLANAR
+                                ? mapProv.polygons
+                                : null,
+                            polylines:
+                                widget.trackingMode == TrackingMode.LINEAR
+                                    ? mapProv.polylines
+                                    : null,
                           ),
                         )
                       : Center(
@@ -128,8 +147,8 @@ class _MapScreenState extends State<MapScreen> {
           child: Container(
             width: 32,
             height: 32,
-            decoration:
-                BoxDecoration(color: widget.polygonColor, shape: BoxShape.circle),
+            decoration: BoxDecoration(
+                color: widget.polygonColor, shape: BoxShape.circle),
             child: Center(
               child: Text(
                 (mapProv.tempLocation.length + 1).toString(),
@@ -151,17 +170,19 @@ class _MapScreenState extends State<MapScreen> {
         return RepaintBoundary(
           key: mapProv.distanceKey,
           child: Container(
-            width: mapProv.distance.length > 6 ? (mapProv.distance.length >= 9 ? 100 : 80) : 64,
+            width: mapProv.distance.length > 6
+                ? (mapProv.distance.length >= 9 ? 100 : 80)
+                : 64,
             height: 32,
             decoration: BoxDecoration(
-              color: widget.toolColor,
-              borderRadius: BorderRadius.circular(10)
-            ),
+                color: widget.toolColor,
+                borderRadius: BorderRadius.circular(10)),
             child: Center(
-              child: Text(
-                mapProv.distance,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)
-              ),
+              child: Text(mapProv.distance,
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white)),
             ),
           ),
         );
@@ -176,89 +197,171 @@ class _MapScreenState extends State<MapScreen> {
         return Consumer<MapProvider>(
           builder: (context, mapProv, _) {
             return SafeArea(
-              child: Align(
-                alignment: Alignment.topRight,
-                child: Padding(
-                    padding: const EdgeInsets.only(top: 30, right: 20),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: <Widget>[
-                        mapProv.isEditMode == true
-                            ? FadeAnimation(
-                                delay: 0.8,
-                                child: InkWell(
-                                  onTap: () => mapProv.undoLocation(),
-                                  child: Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                        color: widget.toolColor,
-                                        borderRadius:
-                                            BorderRadius.circular(50)),
-                                    child: Icon(
-                                      widget.iconUndoEdit,
-                                      color: Colors.white,
+              child: Stack(
+                children: <Widget>[
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                        padding: const EdgeInsets.only(top: 30, right: 20),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: <Widget>[
+                            mapProv.isEditMode == true
+                                ? FadeAnimation(
+                                    delay: 0.8,
+                                    child: InkWell(
+                                      onTap: () => mapProv.undoLocation(),
+                                      child: Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                            color: isSatellite
+                                                ? Colors.white
+                                                : widget.toolColor,
+                                            borderRadius:
+                                                BorderRadius.circular(50)),
+                                        child: Icon(
+                                          widget.iconUndoEdit,
+                                          color: isSatellite
+                                              ? Colors.black87
+                                              : Colors.white,
+                                        ),
+                                      ),
                                     ),
+                                  )
+                                : SizedBox(),
+                            SizedBox(
+                                width: mapProv.isEditMode == true ? 10 : 0),
+                            mapProv.isEditMode == true
+                                ? FadeAnimation(
+                                    delay: 0.5,
+                                    child: InkWell(
+                                      onTap: () =>
+                                          mapProv.saveTracking(context),
+                                      child: Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                            color: isSatellite
+                                                ? Colors.white
+                                                : widget.toolColor,
+                                            borderRadius:
+                                                BorderRadius.circular(50)),
+                                        child: Icon(
+                                          widget.iconDoneEdit,
+                                          color: isSatellite
+                                              ? Colors.black87
+                                              : Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : SizedBox(),
+                            SizedBox(
+                                width: mapProv.isEditMode == true ? 10 : 0),
+                            InkWell(
+                              onTap: () => mapProv.changeEditMode(),
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                    color: isSatellite
+                                        ? Colors.white
+                                        : widget.toolColor,
+                                    borderRadius: BorderRadius.circular(50)),
+                                child: Icon(
+                                  mapProv.isEditMode == false
+                                      ? widget.iconEditMode
+                                      : widget.iconCloseEdit,
+                                  color: isSatellite
+                                      ? Colors.black87
+                                      : Colors.white,
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            InkWell(
+                              onTap: () => mapProv
+                                  .changeCameraPosition(mapProv.sourceLocation),
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                    color: isSatellite
+                                        ? Colors.white
+                                        : widget.toolColor,
+                                    borderRadius: BorderRadius.circular(50)),
+                                child: Icon(
+                                  widget.iconLocation,
+                                  color: isSatellite
+                                      ? Colors.black87
+                                      : Colors.white,
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            //TODO: add button to change map style to sattelite and normal.
+                            InkWell(
+                              onTap: () {
+                                if (isSatellite) {
+                                  isSatellite = false;
+                                } else
+                                  isSatellite = true;
+                                setState(() {});
+                              },
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                    color: isSatellite
+                                        ? Colors.white
+                                        : widget.toolColor,
+                                    borderRadius: BorderRadius.circular(50)),
+                                child: Icon(
+                                  isSatellite ? Icons.map : Icons.satellite,
+                                  color: isSatellite
+                                      ? Colors.black87
+                                      : Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )),
+                  ),
+                  widget.targetCameraPosition == null && mapProv.isEditMode
+                      ? Align(
+                          alignment: Alignment.bottomLeft,
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.only(bottom: 30, left: 20),
+                            child: FadeAnimation(
+                              delay: 0.5,
+                              child: InkWell(
+                                onTap: () {
+                                  mapProv.addGpsLocation(
+                                      trackingMode: widget.trackingMode);
+                                },
+                                child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                      color: isSatellite
+                                          ? Colors.white
+                                          : widget.toolColor,
+                                      borderRadius: BorderRadius.circular(50)),
+                                  child: Icon(
+                                    widget.iconGPSPoint,
+                                    color: isSatellite
+                                        ? Colors.black87
+                                        : Colors.white,
                                   ),
                                 ),
-                              )
-                            : SizedBox(),
-                        SizedBox(width: mapProv.isEditMode == true ? 10 : 0),
-                        mapProv.isEditMode == true
-                            ? FadeAnimation(
-                                delay: 0.5,
-                                child: InkWell(
-                                  onTap: () => mapProv.savePolygon(context),
-                                  child: Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                        color: widget.toolColor,
-                                        borderRadius:
-                                            BorderRadius.circular(50)),
-                                    child: Icon(
-                                      widget.iconDoneEdit,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              )
-                            : SizedBox(),
-                        SizedBox(width: mapProv.isEditMode == true ? 10 : 0),
-                        InkWell(
-                          onTap: () => mapProv.changeEditMode(),
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                                color: widget.toolColor,
-                                borderRadius: BorderRadius.circular(50)),
-                            child: Icon(
-                              mapProv.isEditMode == false
-                                  ? widget.iconEditMode
-                                  : widget.iconCloseEdit,
-                              color: Colors.white,
+                              ),
                             ),
                           ),
-                        ),
-                        SizedBox(width: 10),
-                        InkWell(
-                          onTap: () => mapProv
-                              .changeCameraPosition(mapProv.sourceLocation),
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                                color: widget.toolColor,
-                                borderRadius: BorderRadius.circular(50)),
-                            child: Icon(
-                              widget.iconLocation,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    )),
+                        )
+                      : SizedBox(height: 0, width: 0),
+                ],
               ),
             );
           },

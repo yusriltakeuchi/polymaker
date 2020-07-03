@@ -1,7 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:polymaker/core/models/location_polygon.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:polymaker/core/models/trackingmode.dart';
 import 'package:polymaker/polymaker.dart' as polymaker;
 
 void main() => runApp(MyApp());
@@ -11,13 +12,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'PolyMaker Demo',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: HomeScreen()
-    );
+        title: 'PolyMaker Demo',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: HomeScreen());
   }
 }
 
@@ -39,10 +39,10 @@ class HomeBody extends StatefulWidget {
 }
 
 class _HomeBodyState extends State<HomeBody> {
-
-  List<LocationPolygon> locationList;
+  List<LatLng> locationList;
   void getLocation() async {
-    var result = await polymaker.getLocation(context);
+    var result =
+        await polymaker.getLocation(context, trackingMode: TrackingMode.PLANAR);
     if (result != null) {
       setState(() {
         locationList = result;
@@ -53,7 +53,7 @@ class _HomeBodyState extends State<HomeBody> {
   @override
   void initState() {
     super.initState();
-    locationList = new List<LocationPolygon>();
+    locationList = new List<LatLng>();
   }
 
   @override
@@ -66,7 +66,12 @@ class _HomeBodyState extends State<HomeBody> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Text(
-            "Location Result: \n" + (locationList != null ? locationList.map((val) => "[${val.latitude}, ${val.longitude}]\n").toString() : "") ,
+            "Location Result: \n" +
+                (locationList != null
+                    ? locationList
+                        .map((val) => "[${val.latitude}, ${val.longitude}]\n")
+                        .toString()
+                    : ""),
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 18),
           ),
@@ -75,7 +80,8 @@ class _HomeBodyState extends State<HomeBody> {
             height: 45,
             child: RaisedButton(
               color: Colors.blue,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
               onPressed: () => getLocation(),
               child: Text(
                 "Get Polygon Location",
