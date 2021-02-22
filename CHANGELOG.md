@@ -1,6 +1,8 @@
-## [0.0.4+1] - 2021-02-02
+## [0.0.5] - 2021-02-22
 
-- Bump google_maps_flutter version to ^1.1.1
+- Updating dependency to the latest versions
+- Updating example project sdk version to 29
+- Added new feature Draggable Marker
 
 ## [0.0.4] - 2020-05-18
 

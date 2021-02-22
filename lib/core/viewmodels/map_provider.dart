@@ -113,7 +113,13 @@ class MapProvider extends ChangeNotifier {
   bool _pointDistance = true;
   bool get pointDistance => _pointDistance;
 
-  //Constructor
+  ///Save current tracking mode
+  TrackingMode _trackingMode;
+  TrackingMode get trackingMode => _trackingMode;
+
+  ///Enabling draggable marker
+  bool _enableDragMarker = false;
+  bool get enableDragMarker => _enableDragMarker;
 
   //------------------------//
   //   FUNCTION SECTIONS   //
@@ -121,7 +127,7 @@ class MapProvider extends ChangeNotifier {
 
   ///Function to initialize camera
   void initCamera(bool autoEditMode, bool pointDist,
-      {LatLng targetCameraPosition}) async {
+      {LatLng targetCameraPosition, bool dragMarker}) async {
     if (targetCameraPosition != null) {
       _sourceLocation = targetCameraPosition;
       //notifyListeners();
@@ -147,6 +153,10 @@ class MapProvider extends ChangeNotifier {
     //Enable or Disable point distance
     if (pointDist == false) {
       _pointDistance = false;
+    }
+
+    if (dragMarker != null) {
+      _enableDragMarker = dragMarker;
     }
 
     notifyListeners();
@@ -257,7 +267,7 @@ class MapProvider extends ChangeNotifier {
     ///Create distance marker function
     await Future.delayed((Duration(milliseconds: 100)));
     Uint8List distanceIcon = await getUint8List(distanceKey);
-    setMarkerLocation(distance, center, distanceIcon);
+    setMarkerLocation(dist, center, distanceIcon);
     notifyListeners();
   }
 
@@ -282,7 +292,7 @@ class MapProvider extends ChangeNotifier {
 
   ///Function to handle onTap Map and get location
   void onTapMap(LatLng _location,
-      {TrackingMode trackingMode = TrackingMode.PLANAR}) async {
+      {TrackingMode mode = TrackingMode.PLANAR}) async {
     if (isEditMode == true) {
       ///Find center position between two coordinate
       if (_tempLocation.length > 0) {
@@ -290,7 +300,7 @@ class MapProvider extends ChangeNotifier {
           ///Remove previous distance first point to last point
           await removeMarker(_endLoc);
 
-          //Create distance marker for first point to last point
+          ///Create distance marker for first point to last point
           await createEndLoc(_tempLocation[0], _location);
         }
 
@@ -309,6 +319,9 @@ class MapProvider extends ChangeNotifier {
       ///Create marker point
       Uint8List markerIcon = await getUint8List(markerKey);
       setMarkerLocation(_tempLocation.length.toString(), _location, markerIcon);
+      ///Set current tracking mode
+      ///so we can use this variable in every function
+      setTrackingMode(mode);
       if (trackingMode == TrackingMode.PLANAR) {
         setTempToPolygon();
       } else {
@@ -319,8 +332,7 @@ class MapProvider extends ChangeNotifier {
   }
 
   ///TODO: add function to add location from gps
-
-  void addGpsLocation({TrackingMode trackingMode = TrackingMode.PLANAR}) async {
+  void addGpsLocation({TrackingMode mode = TrackingMode.PLANAR}) async {
     var _locationData = await location.getLocation();
     var _location = new LatLng(_locationData.latitude, _locationData.longitude);
     if (isEditMode == true) {
@@ -330,7 +342,7 @@ class MapProvider extends ChangeNotifier {
           ///Remove previous distance first point to last point
           await removeMarker(_endLoc);
 
-          //Create distance marker for first point to last point
+          ///Create distance marker for first point to last point
           await createEndLoc(_tempLocation[0], _location);
         }
 
@@ -349,6 +361,9 @@ class MapProvider extends ChangeNotifier {
       ///Create marker point
       Uint8List markerIcon = await getUint8List(markerKey);
       setMarkerLocation(_tempLocation.length.toString(), _location, markerIcon);
+      ///Set current tracking mode
+      ///so we can use this variable in every function
+      setTrackingMode(mode);
       if (trackingMode == TrackingMode.PLANAR) {
         setTempToPolygon();
       } else {
@@ -364,11 +379,55 @@ class MapProvider extends ChangeNotifier {
     _markers.add(Marker(
         markerId: MarkerId("${uniqueID + id}"),
         position: _location,
+        draggable: enableDragMarker,
         icon: BitmapDescriptor.fromBytes(markerIcon),
+        onDragEnd: (newLoc) {
+          if (enableDragMarker) {
+            updateNewMarkerLocation(id, newLoc);
+          }
+        },
         infoWindow: title != null
             ? InfoWindow(title: title, snippet: "Area Polygon Nomor $id")
             : null));
 
+    notifyListeners();
+  }
+
+  ///Remove marker by latlong
+  void removeMarkerByLatlong(LatLng _location) {
+    _markers.removeWhere((_marker) => _marker.position == _location);
+    notifyListeners();
+  }
+
+  ///Updating new marker and polygon location 
+  ///when the marker is dragged
+  void updateNewMarkerLocation(String id, LatLng _newLoc) async {
+    _tempLocation[int.parse(id)-1] = _newLoc;
+
+    if (trackingMode == TrackingMode.PLANAR) {
+      setTempToPolygon();
+    } else {
+      setTempToPolyline();
+    }
+
+    ///Refresh distance marker
+    for (var distance in _distanceLocation) {
+      removeMarkerByLatlong(distance);
+    }
+    _distanceLocation.clear();
+    for (int i=0; i<_tempLocation.length; i++) {
+      if (i+1 < _tempLocation.length) {
+        await createDistanceMarker(_tempLocation[i], _tempLocation[i+1]);
+      }
+    }
+
+    if (_tempLocation.length > 1 && pointDistance) {
+      ///Remove previous distance first point to last point
+      await removeMarker(_endLoc);
+
+      ///Create distance marker for first point to last point
+      await createEndLoc(_tempLocation[0], _tempLocation.last);
+    }
     notifyListeners();
   }
 
@@ -410,13 +469,6 @@ class MapProvider extends ChangeNotifier {
   ///Function to save tracking points to database
   void saveTracking(BuildContext context) {
     if (_tempLocation.length > 0) {
-      // var locationPolygon = new List<LocationPolygon>();
-      // _tempLocation.forEach((loc) {
-      //   locationPolygon.add(LocationPolygon(
-      //     latitude: loc.latitude,
-      //     longitude: loc.longitude
-      //   ));
-      // });
       Navigator.pop(context, _tempLocation);
     } else {
       Navigator.pop(context, null);
@@ -430,6 +482,12 @@ class MapProvider extends ChangeNotifier {
     var image = await boundary.toImage(pixelRatio: 2.0);
     ByteData byteData = await image.toByteData(format: ImageByteFormat.png);
     return byteData.buffer.asUint8List();
+  }
+
+  ///Set current tracking mode
+  void setTrackingMode(TrackingMode mode) {
+    _trackingMode = mode;
+    notifyListeners();
   }
 
   ///Function to get center location between two coordinate

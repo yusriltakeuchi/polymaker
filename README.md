@@ -1,17 +1,9 @@
-
-  
-
-  
-
 # Polymaker
 
 [![Fork](https://img.shields.io/github/forks/yusriltakeuchi/polymaker?style=social)](https://github.com/yusriltakeuchi/polymaker/fork)&nbsp; [![Star](https://img.shields.io/github/stars/yusriltakeuchi/polymaker?style=social)](https://github.com/yusriltakeuchi/polymaker/star)&nbsp; [![Watches](https://img.shields.io/github/watchers/yusriltakeuchi/polymaker?style=social)](https://github.com/yusriltakeuchi/polymaker/)&nbsp; [![Get the library](https://img.shields.io/badge/Get%20library-pub-blue)](https://pub.dev/packages/polymaker)&nbsp; [![Example](https://img.shields.io/badge/Example-Ex-success)](https://pub.dev/packages/polymaker#-example-tab-)
 
-
 Polymaker is a flutter package to make it easier to map polygon locations in Google Maps, because the appearance is realtime when in Edit Mode, so we know the exact position without guessing through the backend system.
-
 Polymaker can be run with only one line of code, and returns the location's List value.
-
 
 ### Tools Feature:
 
@@ -26,9 +18,10 @@ Polymaker can be run with only one line of code, and returns the location's List
 - Tracking Mode LINEAR & PLANAR
 - Custom Map Type
 
-<p><img  src="https://i.imgur.com/pjJdUvw.jpg" />
-<img  src="https://i.imgur.com/nfyJked.jpg" /></p>
-
+<p>
+<img src="https://i.imgur.com/pjJdUvw.jpg" height="480px">
+<img src="https://i.imgur.com/nfyJked.jpg" height="480px">
+</p>
   
 # Billing
 
@@ -61,6 +54,16 @@ Insert Google Maps Key in **android/app/src/main/AndroidManifest.xml**
 		android:value="@integer/google_play_services_version" />
 </application>
 ```
+
+Setup your SDK Version to the latest in **android/app/build.gradle**
+
+    compileSdkVersion 29
+    ....
+    defaultConfig {
+      ....
+      targetSdkVersion 29
+      ....
+    }
 
 #### IOS
 
@@ -118,7 +121,7 @@ with the key `io.flutter.embedded_views_preview` and the value `YES`; you need a
 ```dart
 import  'package:polymaker/polymaker.dart'  as polymaker;
 
-// Open polymaker and get return List<LocationPolygon>
+// Open polymaker and get return List<LatLng>
 var result =  await polymaker.getLocation(context);
 ```
 
@@ -138,3 +141,4 @@ var result =  await polymaker.getLocation(context);
 |**pointDistance** |Enable / Disable Point Distance |Boolean
 |**trackingMode** |Choose Tracking mode between polygon or polyline |TrackingMode
 |**targetCameraPosition** |Set initial camera locations |LatLng
+|**enableDragMarker** |Enabling drag to marker position |Boolean

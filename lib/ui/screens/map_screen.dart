@@ -36,11 +36,14 @@ class MapScreen extends StatefulWidget {
   ///Property to enable and disable point distance
   final bool pointDistance;
 
-  //property to determine tracking mode
+  ///Property to choose tracking mode, you can choose PLANAR or LINEAR
   final TrackingMode trackingMode;
 
-  final LatLng
-      targetCameraPosition; //if this is null it means user is opting to use GPS tracking
+  ///Property to enable draggable marker
+  final bool enableDragMarker;
+
+  ///If this is null it means user is opting to use GPS tracking
+  final LatLng targetCameraPosition;
 
   MapScreen(
       {this.toolColor,
@@ -54,7 +57,8 @@ class MapScreen extends StatefulWidget {
       this.autoEditMode,
       this.pointDistance,
       this.trackingMode,
-      this.targetCameraPosition});
+      this.targetCameraPosition,
+      this.enableDragMarker});
 
   @override
   _MapScreenState createState() => _MapScreenState();
@@ -83,9 +87,9 @@ class _MapScreenState extends State<MapScreen> {
             if (mapProv.cameraPosition == null) {
               if (widget.targetCameraPosition != null) {
                 mapProv.initCamera(widget.autoEditMode, widget.pointDistance,
-                    targetCameraPosition: widget.targetCameraPosition);
+                    targetCameraPosition: widget.targetCameraPosition, dragMarker: widget.enableDragMarker);
               } else {
-                mapProv.initCamera(widget.autoEditMode, widget.pointDistance);
+                mapProv.initCamera(widget.autoEditMode, widget.pointDistance, dragMarker: widget.enableDragMarker);
               }
               mapProv.setPolygonColor(widget.polygonColor);
               return Center(
@@ -115,7 +119,7 @@ class _MapScreenState extends State<MapScreen> {
                             onMapCreated: mapProv.onMapCreated,
                             mapToolbarEnabled: false,
                             onTap: (loc) => mapProv.onTapMap(loc,
-                                trackingMode: widget.trackingMode),
+                                mode: widget.trackingMode),
                             polygons: widget.trackingMode == TrackingMode.PLANAR
                                 ? mapProv.polygons
                                 : null,
@@ -339,7 +343,7 @@ class _MapScreenState extends State<MapScreen> {
                               child: InkWell(
                                 onTap: () {
                                   mapProv.addGpsLocation(
-                                      trackingMode: widget.trackingMode);
+                                      mode: widget.trackingMode);
                                 },
                                 child: Container(
                                   width: 40,

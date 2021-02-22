@@ -2,7 +2,6 @@ library polymaker;
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:polymaker/core/models/location_polygon.dart';
 import 'package:polymaker/core/models/trackingmode.dart';
 import 'package:polymaker/ui/screens/map_screen.dart';
 
@@ -42,7 +41,11 @@ class PolyMaker {
   ///Property to respond to user-defined camera pos
   final LatLng targetCameraPosition;
 
+  ///Property to choose tracking mode, you can choose PLANAR or LINEAR
   final TrackingMode trackingMode;
+
+  ///Property to enable draggable marker
+  final bool enableDragMarker;
 
   PolyMaker(
       {@required this.context,
@@ -57,7 +60,8 @@ class PolyMaker {
       this.autoEditMode,
       this.pointDistance,
       this.targetCameraPosition,
-      this.trackingMode});
+      this.trackingMode,
+      this.enableDragMarker});
 
   ///Function to open location maker and get result locations
   Future<List<LatLng>> getLocation() async {
@@ -75,6 +79,7 @@ class PolyMaker {
               pointDistance: pointDistance,
               trackingMode: trackingMode,
               targetCameraPosition: targetCameraPosition,
+              enableDragMarker: enableDragMarker,
             )));
     return result;
   }
@@ -93,7 +98,8 @@ Future<List<LatLng>> getLocation(BuildContext context,
     bool autoEditMode,
     bool pointDistance,
     LatLng targetCameraPosition,
-    TrackingMode trackingMode}) async {
+    TrackingMode trackingMode,
+    bool enableDragMarker}) async {
   return await PolyMaker(
           context: context,
           toolColor: toolColor != null ? toolColor : Colors.black87,
@@ -111,6 +117,7 @@ Future<List<LatLng>> getLocation(BuildContext context,
           targetCameraPosition:
               targetCameraPosition != null ? targetCameraPosition : null,
           trackingMode:
-              trackingMode != null ? trackingMode : TrackingMode.PLANAR)
+              trackingMode != null ? trackingMode : TrackingMode.PLANAR,
+          enableDragMarker: enableDragMarker != null ? enableDragMarker : false)
       .getLocation();
 }

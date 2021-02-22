@@ -42,7 +42,7 @@ class _HomeBodyState extends State<HomeBody> {
   List<LatLng> locationList;
   void getLocation() async {
     var result =
-        await polymaker.getLocation(context, trackingMode: TrackingMode.PLANAR);
+        await polymaker.getLocation(context, trackingMode: TrackingMode.PLANAR, enableDragMarker: true);
     if (result != null) {
       setState(() {
         locationList = result;
