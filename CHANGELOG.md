@@ -1,4 +1,8 @@
-## [1.0.0-nullsafety.1] - 2021-02-22
+## [1.0.1] - 2021-03-09
+
+- Updating Changelog and version
+
+## [1.0.0-nullsafety.1] - 2021-03-09
 
 - Migrating package to null safety
 - Upgrading another packages
