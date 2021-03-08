@@ -10,45 +10,45 @@ class PolyMaker {
   BuildContext context;
 
   ///Property to customize tool color
-  final Color toolColor;
+  final Color? toolColor;
 
   ///Property to customize polygon color
-  final Color polygonColor;
+  final Color? polygonColor;
 
   ///Property to customize location icon
-  final IconData iconLocation;
+  final IconData? iconLocation;
 
   ///Property to customize edit mode icon
-  final IconData iconEditMode;
+  final IconData? iconEditMode;
 
   ///Property to customize close tool icon
-  final IconData iconCloseEdit;
+  final IconData? iconCloseEdit;
 
   ///Property to customize done icon
-  final IconData iconDoneEdit;
+  final IconData? iconDoneEdit;
 
   ///Property to cusstomize undo icon
-  final IconData iconUndoEdit;
+  final IconData? iconUndoEdit;
 
-  final IconData iconGPSPoint;
+  final IconData? iconGPSPoint;
 
   ///Property to auto edit mode when maps open
-  final bool autoEditMode;
+  final bool? autoEditMode;
 
   ///Property to enable and disable point distance
-  final bool pointDistance;
+  final bool? pointDistance;
 
   ///Property to respond to user-defined camera pos
-  final LatLng targetCameraPosition;
+  final LatLng? targetCameraPosition;
 
   ///Property to choose tracking mode, you can choose PLANAR or LINEAR
-  final TrackingMode trackingMode;
+  final TrackingMode? trackingMode;
 
   ///Property to enable draggable marker
-  final bool enableDragMarker;
+  final bool? enableDragMarker;
 
   PolyMaker(
-      {@required this.context,
+      {required this.context,
       this.toolColor,
       this.polygonColor,
       this.iconLocation,
@@ -64,7 +64,7 @@ class PolyMaker {
       this.enableDragMarker});
 
   ///Function to open location maker and get result locations
-  Future<List<LatLng>> getLocation() async {
+  Future<List<LatLng>?> getLocation() async {
     final result = await Navigator.of(context).push(MaterialPageRoute(
         builder: (context) => MapScreen(
               toolColor: toolColor,
@@ -86,20 +86,20 @@ class PolyMaker {
 }
 
 ///Function to open location maker
-Future<List<LatLng>> getLocation(BuildContext context,
-    {Color toolColor,
-    Color polygonColor,
-    IconData iconLocation,
-    IconData iconEditMode,
-    IconData iconCloseEdit,
-    IconData iconDoneEdit,
-    IconData iconUndoEdit,
-    IconData iconGPSPoint,
-    bool autoEditMode,
-    bool pointDistance,
-    LatLng targetCameraPosition,
-    TrackingMode trackingMode,
-    bool enableDragMarker}) async {
+Future<List<LatLng>?> getLocation(BuildContext context,
+    {Color? toolColor,
+    Color? polygonColor,
+    IconData? iconLocation,
+    IconData? iconEditMode,
+    IconData? iconCloseEdit,
+    IconData? iconDoneEdit,
+    IconData? iconUndoEdit,
+    IconData? iconGPSPoint,
+    bool? autoEditMode,
+    bool? pointDistance,
+    LatLng? targetCameraPosition,
+    TrackingMode? trackingMode,
+    bool? enableDragMarker}) async {
   return await PolyMaker(
           context: context,
           toolColor: toolColor != null ? toolColor : Colors.black87,

@@ -8,24 +8,22 @@ import 'dart:math' show cos, sqrt, asin;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart';
 import 'package:polymaker/core/models/trackingmode.dart';
 
 class MapProvider extends ChangeNotifier {
-  //------------------------//
-  //   PROPERTY SECTIONS    //
-  //------------------------//
-
-  //Property tracking Mode;
+  ///------------------------///
+  ///   PROPERTY SECTIONS    ///
+  ///------------------------///
 
   ///Property zoom camera
   double _cameraZoom = 16;
   double get cameraZoom => _cameraZoom;
 
   ///Property camera position
-  CameraPosition _cameraPosition;
-  CameraPosition get cameraPosition => _cameraPosition;
+  CameraPosition? _cameraPosition;
+  CameraPosition? get cameraPosition => _cameraPosition;
 
   ///Property camera tilt
   double _cameraTilt = 0;
@@ -36,27 +34,24 @@ class MapProvider extends ChangeNotifier {
   double get cameraBearing => _cameraBearing;
 
   ///Property my location data
-  LatLng _sourceLocation;
-  LatLng get sourceLocation => _sourceLocation;
+  LatLng? _sourceLocation;
+  LatLng? get sourceLocation => _sourceLocation;
 
   ///Property Google Map Controller completer
   Completer<GoogleMapController> _completer = Completer();
   Completer<GoogleMapController> get completer => _completer;
 
   ///Property Google Map Controller
-  GoogleMapController _controller;
-  GoogleMapController get controller => _controller;
+  GoogleMapController? _controller;
+  GoogleMapController? get controller => _controller;
 
   ///Property to save all markers
   Set<Marker> _markers = {};
   Set<Marker> get markers => _markers;
 
   ///Property to mapStyle
-  String _mapStyle;
-  String get mapStyle => _mapStyle;
-
-  ///Property location services
-  Location location = new Location();
+  String? _mapStyle;
+  String? get mapStyle => _mapStyle;
 
   ///Property to handle edit mode
   bool _isEditMode = false;
@@ -78,28 +73,28 @@ class MapProvider extends ChangeNotifier {
   Set<Polyline> get polylines => _polylines;
 
   ///Property temporary location
-  List<LatLng> _tempLocation = new List();
+  List<LatLng> _tempLocation = [];
   List<LatLng> get tempLocation => _tempLocation;
 
   ///Property to save distance location
-  List<LatLng> _distanceLocation = new List();
+  List<LatLng> _distanceLocation = [];
   List<LatLng> get distanceLocation => _distanceLocation;
 
   ///Propoerty to save end location
-  LatLng _endLoc;
-  LatLng get endLoc => _endLoc;
+  LatLng? _endLoc;
+  LatLng? get endLoc => _endLoc;
 
   ///Property to get uniqueId for markers
   String _uniqueID = "";
   String get uniqueID => _uniqueID;
 
   ///Property to polygon color
-  Color _polygonColor;
-  Color get polygonColor => _polygonColor;
+  Color? _polygonColor;
+  Color? get polygonColor => _polygonColor;
 
   ///Property to custom marker
-  Uint8List _customMarker;
-  Uint8List get customMarker => _customMarker;
+  Uint8List? _customMarker;
+  Uint8List? get customMarker => _customMarker;
 
   ///Custom key for custom marker
   final markerKey = GlobalKey();
@@ -114,43 +109,44 @@ class MapProvider extends ChangeNotifier {
   bool get pointDistance => _pointDistance;
 
   ///Save current tracking mode
-  TrackingMode _trackingMode;
-  TrackingMode get trackingMode => _trackingMode;
+  TrackingMode? _trackingMode;
+  TrackingMode? get trackingMode => _trackingMode;
 
   ///Enabling draggable marker
   bool _enableDragMarker = false;
   bool get enableDragMarker => _enableDragMarker;
 
-  //------------------------//
-  //   FUNCTION SECTIONS   //
-  //------------------------//
+  ///Check if initialize camera success
+  bool _onInitCamera = false;
+  bool get onInitCamera => _onInitCamera;
+
+  ///------------------------///
+  ///   FUNCTION SECTIONS   ///
+  ///------------------------///
 
   ///Function to initialize camera
-  void initCamera(bool autoEditMode, bool pointDist,
-      {LatLng targetCameraPosition, bool dragMarker}) async {
+  void initCamera(bool autoEditMode, bool? pointDist,
+      {LatLng? targetCameraPosition, bool? dragMarker}) async {
     if (targetCameraPosition != null) {
       _sourceLocation = targetCameraPosition;
-      //notifyListeners();
     } else {
       ///Get current locations
       await initLocation();
     }
-
-    ///Get current locations
 
     ///Set current location to camera
     _cameraPosition = CameraPosition(
         zoom: cameraZoom,
         bearing: cameraBearing,
         tilt: cameraTilt,
-        target: sourceLocation);
+        target: sourceLocation!);
 
     ///Auto mode on
     if (autoEditMode) {
       _isEditMode = !_isEditMode;
     }
 
-    //Enable or Disable point distance
+    ///Enable or Disable point distance
     if (pointDist == false) {
       _pointDistance = false;
     }
@@ -163,20 +159,27 @@ class MapProvider extends ChangeNotifier {
   }
 
   ///Function to init polygon color
-  void setPolygonColor(Color color) async {
+  void setPolygonColor(Color? color) async {
     _polygonColor = await getPolyColor(color);
     notifyListeners();
   }
 
   ///Assign polygon color
-  Future<Color> getPolyColor(Color color) async {
+  Future<Color?> getPolyColor(Color? color) async {
     return color;
   }
 
   ///Function to get current locations
   Future<void> initLocation() async {
-    var locData = await location.getLocation();
-    _sourceLocation = LatLng(locData.latitude, locData.longitude);
+    _onInitCamera = true;
+    try {
+      Position currentPos = await Geolocator.getCurrentPosition();
+      _sourceLocation = LatLng(currentPos.latitude, currentPos.longitude);
+      _onInitCamera = false;
+    } catch(e) {
+      print(e.toString());
+      initLocation();
+    }
 
     notifyListeners();
   }
@@ -191,7 +194,7 @@ class MapProvider extends ChangeNotifier {
     _controller = controller;
 
     ///Set style to map
-    _controller.setMapStyle(_mapStyle);
+    _controller!.setMapStyle(_mapStyle);
 
     notifyListeners();
   }
@@ -199,7 +202,7 @@ class MapProvider extends ChangeNotifier {
   ///Function to change camera position
   void changeCameraPosition(LatLng location) {
     ///Moving maps camera
-    _controller.animateCamera(CameraUpdate.newLatLngZoom(
+    _controller!.animateCamera(CameraUpdate.newLatLngZoom(
         LatLng(
           location.latitude,
           location.longitude,
@@ -214,7 +217,7 @@ class MapProvider extends ChangeNotifier {
     _isEditMode = !_isEditMode;
 
     if (_isEditMode == false) {
-      //* When editing mode done
+      /// When editing mode done
       _uniqueID = "";
       _tempPolygons.clear();
       _tempLocation.clear();
@@ -242,7 +245,7 @@ class MapProvider extends ChangeNotifier {
       }
 
       if (_tempLocation.length > 1 && pointDistance) {
-        //Create distance marker for first point to last point
+        ///Create distance marker for first point to last point
         createEndLoc(_tempLocation[0], _tempLocation.last);
       }
     }
@@ -266,7 +269,7 @@ class MapProvider extends ChangeNotifier {
 
     ///Create distance marker function
     await Future.delayed((Duration(milliseconds: 100)));
-    Uint8List distanceIcon = await getUint8List(distanceKey);
+    Uint8List? distanceIcon = await getUint8List(distanceKey);
     setMarkerLocation(dist, center, distanceIcon);
     notifyListeners();
   }
@@ -281,18 +284,18 @@ class MapProvider extends ChangeNotifier {
 
     ///Create distance marker function
     await Future.delayed((Duration(milliseconds: 100)));
-    Uint8List distanceIcon = await getUint8List(distanceKey);
+    Uint8List? distanceIcon = await getUint8List(distanceKey);
     setMarkerLocation(distance, center, distanceIcon);
     notifyListeners();
   }
 
-  Future<void> removeMarker(LatLng _loc) async {
+  Future<void> removeMarker(LatLng? _loc) async {
     _markers.removeWhere((mark) => mark.position == _loc);
   }
 
   ///Function to handle onTap Map and get location
   void onTapMap(LatLng _location,
-      {TrackingMode mode = TrackingMode.PLANAR}) async {
+      {TrackingMode? mode = TrackingMode.PLANAR}) async {
     if (isEditMode == true) {
       ///Find center position between two coordinate
       if (_tempLocation.length > 0) {
@@ -317,7 +320,7 @@ class MapProvider extends ChangeNotifier {
       }
 
       ///Create marker point
-      Uint8List markerIcon = await getUint8List(markerKey);
+      Uint8List? markerIcon = await getUint8List(markerKey);
       setMarkerLocation(_tempLocation.length.toString(), _location, markerIcon);
       ///Set current tracking mode
       ///so we can use this variable in every function
@@ -331,10 +334,9 @@ class MapProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  ///TODO: add function to add location from gps
-  void addGpsLocation({TrackingMode mode = TrackingMode.PLANAR}) async {
-    var _locationData = await location.getLocation();
-    var _location = new LatLng(_locationData.latitude, _locationData.longitude);
+  void addGpsLocation({TrackingMode? mode = TrackingMode.PLANAR}) async {
+    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    var _location = new LatLng(position.latitude, position.longitude);
     if (isEditMode == true) {
       ///Find center position between two coordinate
       if (_tempLocation.length > 0) {
@@ -359,7 +361,7 @@ class MapProvider extends ChangeNotifier {
       }
 
       ///Create marker point
-      Uint8List markerIcon = await getUint8List(markerKey);
+      Uint8List? markerIcon = await getUint8List(markerKey);
       setMarkerLocation(_tempLocation.length.toString(), _location, markerIcon);
       ///Set current tracking mode
       ///so we can use this variable in every function
@@ -374,21 +376,19 @@ class MapProvider extends ChangeNotifier {
   }
 
   ///Function to set marker locations
-  void setMarkerLocation(String id, LatLng _location, Uint8List markerIcon,
-      {String title}) async {
+  void setMarkerLocation(String id, LatLng _location, Uint8List? markerIcon,
+      {String? title}) async {
     _markers.add(Marker(
         markerId: MarkerId("${uniqueID + id}"),
         position: _location,
         draggable: enableDragMarker,
-        icon: BitmapDescriptor.fromBytes(markerIcon),
+        icon: BitmapDescriptor.fromBytes(markerIcon!),
         onDragEnd: (newLoc) {
           if (enableDragMarker) {
             updateNewMarkerLocation(id, newLoc);
           }
         },
-        infoWindow: title != null
-            ? InfoWindow(title: title, snippet: "Area Polygon Nomor $id")
-            : null));
+        infoWindow: InfoWindow(title: title, snippet: "Area Polygon Nomor $id")));
 
     notifyListeners();
   }
@@ -433,33 +433,30 @@ class MapProvider extends ChangeNotifier {
 
   ///Function to set temporary polygons to polygons
   void setTempToPolygon() {
-    if (_tempPolygons != null) {
-      _tempPolygons
-          .removeWhere((poly) => poly.polygonId.toString() == uniqueID);
-    }
-
+    _tempPolygons
+        .removeWhere((poly) => poly.polygonId.toString() == uniqueID);
+    
     _tempPolygons.add(Polygon(
         polygonId: PolygonId(uniqueID),
         points: _tempLocation,
         strokeWidth: 3,
-        fillColor: _polygonColor.withOpacity(0.3),
-        strokeColor: _polygonColor));
+        fillColor: _polygonColor!.withOpacity(0.3),
+        strokeColor: _polygonColor!));
+    
     _polygons = _tempPolygons;
     notifyListeners();
   }
 
   void setTempToPolyline() {
-    if (_tempPolylines != null) {
-      _tempPolylines
-          .removeWhere((line) => line.polylineId.toString() == uniqueID);
-    }
+    _tempPolylines
+        .removeWhere((line) => line.polylineId.toString() == uniqueID);
 
     _tempPolylines.add(
       Polyline(
         polylineId: PolylineId(uniqueID),
         points: _tempLocation,
         width: 8,
-        color: _polygonColor.withOpacity(0.3),
+        color: _polygonColor!.withOpacity(0.3),
       ),
     );
     _polylines = _tempPolylines;
@@ -476,16 +473,16 @@ class MapProvider extends ChangeNotifier {
   }
 
   ///Converting Widget to PNG
-  Future<Uint8List> getUint8List(GlobalKey widgetKey) async {
+  Future<Uint8List?> getUint8List(GlobalKey widgetKey) async {
     RenderRepaintBoundary boundary =
-        widgetKey.currentContext.findRenderObject();
+        widgetKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
     var image = await boundary.toImage(pixelRatio: 2.0);
-    ByteData byteData = await image.toByteData(format: ImageByteFormat.png);
-    return byteData.buffer.asUint8List();
+    ByteData? byteData = await (image.toByteData(format: ImageByteFormat.png));
+    return byteData?.buffer.asUint8List();
   }
 
   ///Set current tracking mode
-  void setTrackingMode(TrackingMode mode) {
+  void setTrackingMode(TrackingMode? mode) {
     _trackingMode = mode;
     notifyListeners();
   }

@@ -1,3 +1,12 @@
+## [1.0.0-nullsafety.1] - 2021-02-22
+
+- Migrating package to null safety
+- Upgrading another packages
+- Change RaisedButton in example to ElevatedButton
+- Change location to geolocator
+- Removing FadeAnimation class
+- Fixing some bugs
+
 ## [0.0.5] - 2021-02-22
 
 - Updating dependency to the latest versions
