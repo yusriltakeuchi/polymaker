@@ -39,7 +39,7 @@ class HomeBody extends StatefulWidget {
 }
 
 class _HomeBodyState extends State<HomeBody> {
-  List<LatLng> locationList;
+  List<LatLng>? locationList;
   void getLocation() async {
     var result =
         await polymaker.getLocation(context, trackingMode: TrackingMode.PLANAR, enableDragMarker: true);
@@ -53,7 +53,7 @@ class _HomeBodyState extends State<HomeBody> {
   @override
   void initState() {
     super.initState();
-    locationList = new List<LatLng>();
+    locationList = [];
   }
 
   @override
@@ -68,7 +68,7 @@ class _HomeBodyState extends State<HomeBody> {
           Text(
             "Location Result: \n" +
                 (locationList != null
-                    ? locationList
+                    ? locationList!
                         .map((val) => "[${val.latitude}, ${val.longitude}]\n")
                         .toString()
                     : ""),
@@ -78,10 +78,12 @@ class _HomeBodyState extends State<HomeBody> {
           SizedBox(height: 10),
           Container(
             height: 45,
-            child: RaisedButton(
-              color: Colors.blue,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                primary: Colors.blue,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+              ),
               onPressed: () => getLocation(),
               child: Text(
                 "Get Polygon Location",
