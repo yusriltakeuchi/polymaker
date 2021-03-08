@@ -176,7 +176,7 @@ class MapProvider extends ChangeNotifier {
       Position currentPos = await Geolocator.getCurrentPosition();
       _sourceLocation = LatLng(currentPos.latitude, currentPos.longitude);
       _onInitCamera = false;
-    } catch(e) {
+    } catch (e) {
       print(e.toString());
       initLocation();
     }
@@ -322,6 +322,7 @@ class MapProvider extends ChangeNotifier {
       ///Create marker point
       Uint8List? markerIcon = await getUint8List(markerKey);
       setMarkerLocation(_tempLocation.length.toString(), _location, markerIcon);
+
       ///Set current tracking mode
       ///so we can use this variable in every function
       setTrackingMode(mode);
@@ -335,7 +336,8 @@ class MapProvider extends ChangeNotifier {
   }
 
   void addGpsLocation({TrackingMode? mode = TrackingMode.PLANAR}) async {
-    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
     var _location = new LatLng(position.latitude, position.longitude);
     if (isEditMode == true) {
       ///Find center position between two coordinate
@@ -363,6 +365,7 @@ class MapProvider extends ChangeNotifier {
       ///Create marker point
       Uint8List? markerIcon = await getUint8List(markerKey);
       setMarkerLocation(_tempLocation.length.toString(), _location, markerIcon);
+
       ///Set current tracking mode
       ///so we can use this variable in every function
       setTrackingMode(mode);
@@ -388,7 +391,8 @@ class MapProvider extends ChangeNotifier {
             updateNewMarkerLocation(id, newLoc);
           }
         },
-        infoWindow: InfoWindow(title: title, snippet: "Area Polygon Nomor $id")));
+        infoWindow:
+            InfoWindow(title: title, snippet: "Area Polygon Nomor $id")));
 
     notifyListeners();
   }
@@ -399,10 +403,10 @@ class MapProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  ///Updating new marker and polygon location 
+  ///Updating new marker and polygon location
   ///when the marker is dragged
   void updateNewMarkerLocation(String id, LatLng _newLoc) async {
-    _tempLocation[int.parse(id)-1] = _newLoc;
+    _tempLocation[int.parse(id) - 1] = _newLoc;
 
     if (trackingMode == TrackingMode.PLANAR) {
       setTempToPolygon();
@@ -415,9 +419,9 @@ class MapProvider extends ChangeNotifier {
       removeMarkerByLatlong(distance);
     }
     _distanceLocation.clear();
-    for (int i=0; i<_tempLocation.length; i++) {
-      if (i+1 < _tempLocation.length) {
-        await createDistanceMarker(_tempLocation[i], _tempLocation[i+1]);
+    for (int i = 0; i < _tempLocation.length; i++) {
+      if (i + 1 < _tempLocation.length) {
+        await createDistanceMarker(_tempLocation[i], _tempLocation[i + 1]);
       }
     }
 
@@ -433,16 +437,15 @@ class MapProvider extends ChangeNotifier {
 
   ///Function to set temporary polygons to polygons
   void setTempToPolygon() {
-    _tempPolygons
-        .removeWhere((poly) => poly.polygonId.toString() == uniqueID);
-    
+    _tempPolygons.removeWhere((poly) => poly.polygonId.toString() == uniqueID);
+
     _tempPolygons.add(Polygon(
         polygonId: PolygonId(uniqueID),
         points: _tempLocation,
         strokeWidth: 3,
         fillColor: _polygonColor!.withOpacity(0.3),
         strokeColor: _polygonColor!));
-    
+
     _polygons = _tempPolygons;
     notifyListeners();
   }

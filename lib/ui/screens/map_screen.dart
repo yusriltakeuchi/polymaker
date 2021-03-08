@@ -83,12 +83,15 @@ class _MapScreenState extends State<MapScreen> {
         child: Consumer<MapProvider>(
           builder: (contex, mapProv, _) {
             //Get first location
-            if (mapProv.cameraPosition == null && mapProv.onInitCamera == false) {
+            if (mapProv.cameraPosition == null &&
+                mapProv.onInitCamera == false) {
               if (widget.targetCameraPosition != null) {
                 mapProv.initCamera(widget.autoEditMode!, widget.pointDistance,
-                    targetCameraPosition: widget.targetCameraPosition, dragMarker: widget.enableDragMarker);
+                    targetCameraPosition: widget.targetCameraPosition,
+                    dragMarker: widget.enableDragMarker);
               } else {
-                mapProv.initCamera(widget.autoEditMode!, widget.pointDistance, dragMarker: widget.enableDragMarker);
+                mapProv.initCamera(widget.autoEditMode!, widget.pointDistance,
+                    dragMarker: widget.enableDragMarker);
               }
               mapProv.setPolygonColor(widget.polygonColor);
               return Center(
@@ -229,8 +232,7 @@ class _MapScreenState extends State<MapScreen> {
                                 width: mapProv.isEditMode == true ? 10 : 0),
                             mapProv.isEditMode == true
                                 ? InkWell(
-                                    onTap: () =>
-                                        mapProv.saveTracking(context),
+                                    onTap: () => mapProv.saveTracking(context),
                                     child: Container(
                                       width: 40,
                                       height: 40,
@@ -273,8 +275,8 @@ class _MapScreenState extends State<MapScreen> {
                             ),
                             SizedBox(width: 10),
                             InkWell(
-                              onTap: () => mapProv
-                                  .changeCameraPosition(mapProv.sourceLocation!),
+                              onTap: () => mapProv.changeCameraPosition(
+                                  mapProv.sourceLocation!),
                               child: Container(
                                 width: 40,
                                 height: 40,

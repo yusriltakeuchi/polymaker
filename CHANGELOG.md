@@ -1,3 +1,7 @@
+## [1.0.2] - 2021-03-09
+
+- Fixing pubspec score using dartfmt formatting
+
 ## [1.0.1] - 2021-03-09
 
 - Updating Changelog and version
