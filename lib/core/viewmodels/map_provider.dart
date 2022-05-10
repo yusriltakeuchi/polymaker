@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui';
 import 'dart:math' as math;
-import 'dart:math' show cos, sqrt, asin;
+// import 'dart:math' show cos, sqrt, asin;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -136,10 +137,11 @@ class MapProvider extends ChangeNotifier {
 
     ///Set current location to camera
     _cameraPosition = CameraPosition(
-        zoom: cameraZoom,
-        bearing: cameraBearing,
-        tilt: cameraTilt,
-        target: sourceLocation!);
+      zoom: cameraZoom,
+      bearing: cameraBearing,
+      tilt: cameraTilt,
+      target: sourceLocation!,
+    );
 
     ///Auto mode on
     if (autoEditMode) {
@@ -169,11 +171,35 @@ class MapProvider extends ChangeNotifier {
     return color;
   }
 
-  ///Function to get current locations
+  ///Function to get current locations if permission
+  ///available, otherwise set default location
   Future<void> initLocation() async {
     _onInitCamera = true;
     try {
-      Position currentPos = await Geolocator.getCurrentPosition();
+      Position currentPos;
+      try {
+        final serviceEnable = await Geolocator.isLocationServiceEnabled();
+        if (serviceEnable) {
+          var permission = await Geolocator.checkPermission();
+          if ((permission != LocationPermission.always || permission != LocationPermission.whileInUse)) {
+            permission = await Geolocator.requestPermission();
+          }
+          currentPos = await Geolocator.getCurrentPosition();
+        } else {
+          currentPos = Position(
+            latitude: Platform.isAndroid ? 0 :  -6.215412,
+            longitude: Platform.isAndroid ? 0 : 106.777773,
+            timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0
+          );
+        }
+      } catch(_) {
+        currentPos = Position(
+          latitude: Platform.isAndroid ? 0 :  -6.215412,
+          longitude: Platform.isAndroid ? 0 : 106.777773,
+          timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0
+        );
+      }
+
       _sourceLocation = LatLng(currentPos.latitude, currentPos.longitude);
       _onInitCamera = false;
     } catch (e) {

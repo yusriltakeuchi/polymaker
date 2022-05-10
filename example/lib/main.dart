@@ -1,6 +1,4 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:polymaker/core/models/trackingmode.dart';
 import 'package:polymaker/polymaker.dart' as polymaker;
@@ -12,12 +10,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'PolyMaker Demo',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        home: HomeScreen());
+      title: 'PolyMaker Demo',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: HomeScreen(),
+    );
   }
 }
 
@@ -41,8 +40,11 @@ class HomeBody extends StatefulWidget {
 class _HomeBodyState extends State<HomeBody> {
   List<LatLng>? locationList;
   void getLocation() async {
-    var result =
-        await polymaker.getLocation(context, trackingMode: TrackingMode.PLANAR, enableDragMarker: true);
+    var result = await polymaker.getLocation(
+      context,
+      trackingMode: TrackingMode.PLANAR,
+      enableDragMarker: true,
+    );
     if (result != null) {
       setState(() {
         locationList = result;

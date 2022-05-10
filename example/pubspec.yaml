@@ -1,18 +1,18 @@
 name: example
 description: A new Flutter project.
-author: Yusril Rapsanjani<yuranicorp@gmail.com>
+# author: Yusril Rapsanjani<yuranicorp@gmail.com>
 version: 1.0.0+1
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
+  cupertino_icons: ^0.1.2
   flutter:
     sdk: flutter
-  cupertino_icons: ^0.1.2
+  google_maps_flutter: any
   polymaker:
     path: ../
-  google_maps_flutter: any
 
 publish_to: 'none'
 

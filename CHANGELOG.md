@@ -1,3 +1,8 @@
+## [1.0.3] - 2022-05-10
+
+- Updating dependency to latest
+- Fix example project deprecated of Androdi Embedding v2
+
 ## [1.0.2] - 2021-03-09
 
 - Fixing pubspec score using dartfmt formatting
