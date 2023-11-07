@@ -532,7 +532,7 @@ class MapProvider extends ChangeNotifier {
   Future<Uint8List?> getUint8List(GlobalKey widgetKey) async {
     RenderRepaintBoundary boundary =
         widgetKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-    var image = await boundary.toImage(pixelRatio: 2.0);
+    var image = await boundary.toImage(pixelRatio: 1.0);
     ByteData? byteData = await (image.toByteData(format: ImageByteFormat.png));
     return byteData?.buffer.asUint8List();
   }
