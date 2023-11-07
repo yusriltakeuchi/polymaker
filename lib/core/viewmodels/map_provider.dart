@@ -13,6 +13,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:polymaker/core/models/trackingmode.dart';
 
 class MapProvider extends ChangeNotifier {
+  bool _disposed = false;
+
   ///------------------------///
   ///   PROPERTY SECTIONS    ///
   ///------------------------///
@@ -120,6 +122,20 @@ class MapProvider extends ChangeNotifier {
   bool _onInitCamera = false;
   bool get onInitCamera => _onInitCamera;
 
+  //overides to squash bugs of trying to call disposed MapProvider
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  @override
+  void notifyListeners() {
+    if (!_disposed) {
+      super.notifyListeners();
+    }
+  }
+
   ///------------------------///
   ///   FUNCTION SECTIONS   ///
   ///------------------------///
@@ -218,7 +234,6 @@ class MapProvider extends ChangeNotifier {
       print(e.toString());
       initLocation();
     }
-
     notifyListeners();
   }
 
