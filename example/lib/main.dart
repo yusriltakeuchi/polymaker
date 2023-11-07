@@ -82,7 +82,7 @@ class _HomeBodyState extends State<HomeBody> {
             height: 45,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                primary: Colors.blue,
+                backgroundColor: Colors.blue,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
               ),

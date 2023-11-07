@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 import 'dart:ui';
 import 'dart:math' as math;
 // import 'dart:math' show cos, sqrt, asin;
@@ -14,6 +13,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:polymaker/core/models/trackingmode.dart';
 
 class MapProvider extends ChangeNotifier {
+  bool _disposed = false;
+
   ///------------------------///
   ///   PROPERTY SECTIONS    ///
   ///------------------------///
@@ -121,6 +122,20 @@ class MapProvider extends ChangeNotifier {
   bool _onInitCamera = false;
   bool get onInitCamera => _onInitCamera;
 
+  //overides to squash bugs of trying to call disposed MapProvider
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  @override
+  void notifyListeners() {
+    if (!_disposed) {
+      super.notifyListeners();
+    }
+  }
+
   ///------------------------///
   ///   FUNCTION SECTIONS   ///
   ///------------------------///
@@ -181,23 +196,36 @@ class MapProvider extends ChangeNotifier {
         final serviceEnable = await Geolocator.isLocationServiceEnabled();
         if (serviceEnable) {
           var permission = await Geolocator.checkPermission();
-          if ((permission != LocationPermission.always || permission != LocationPermission.whileInUse)) {
+          if ((permission != LocationPermission.always ||
+              permission != LocationPermission.whileInUse)) {
             permission = await Geolocator.requestPermission();
           }
           currentPos = await Geolocator.getCurrentPosition();
         } else {
           currentPos = Position(
-            latitude: Platform.isAndroid ? 0 :  -6.215412,
-            longitude: Platform.isAndroid ? 0 : 106.777773,
-            timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0
-          );
+              latitude: Platform.isAndroid ? 0 : -6.215412,
+              longitude: Platform.isAndroid ? 0 : 106.777773,
+              timestamp: DateTime.now(),
+              accuracy: 0,
+              altitude: 0,
+              heading: 0,
+              speed: 0,
+              speedAccuracy: 0,
+              altitudeAccuracy: 3.0,
+              headingAccuracy: 3.0);
         }
-      } catch(_) {
+      } catch (_) {
         currentPos = Position(
-          latitude: Platform.isAndroid ? 0 :  -6.215412,
-          longitude: Platform.isAndroid ? 0 : 106.777773,
-          timestamp: DateTime.now(), accuracy: 0, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0
-        );
+            latitude: Platform.isAndroid ? 0 : -6.215412,
+            longitude: Platform.isAndroid ? 0 : 106.777773,
+            timestamp: DateTime.now(),
+            accuracy: 0,
+            altitude: 0,
+            heading: 0,
+            speed: 0,
+            speedAccuracy: 0,
+            altitudeAccuracy: 3.0,
+            headingAccuracy: 3.0);
       }
 
       _sourceLocation = LatLng(currentPos.latitude, currentPos.longitude);
@@ -206,7 +234,6 @@ class MapProvider extends ChangeNotifier {
       print(e.toString());
       initLocation();
     }
-
     notifyListeners();
   }
 
@@ -505,7 +532,7 @@ class MapProvider extends ChangeNotifier {
   Future<Uint8List?> getUint8List(GlobalKey widgetKey) async {
     RenderRepaintBoundary boundary =
         widgetKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-    var image = await boundary.toImage(pixelRatio: 2.0);
+    var image = await boundary.toImage(pixelRatio: 1.0);
     ByteData? byteData = await (image.toByteData(format: ImageByteFormat.png));
     return byteData?.buffer.asUint8List();
   }
