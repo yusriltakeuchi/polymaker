@@ -199,18 +199,18 @@ class _MapScreenState extends State<MapScreen> {
         return Consumer<MapProvider>(
           builder: (context, mapProv, _) {
             return SafeArea(
-              child: PointerInterceptor(
-                child: Stack(
-                  children: <Widget>[
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: Padding(
-                          padding: const EdgeInsets.only(top: 30, right: 20),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: <Widget>[
-                              mapProv.isEditMode == true
-                                  ? InkWell(
+              child: Stack(
+                children: <Widget>[
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                        padding: const EdgeInsets.only(top: 30, right: 20),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: <Widget>[
+                            mapProv.isEditMode == true
+                                ? PointerInterceptor(
+                                    child: InkWell(
                                       onTap: () => mapProv.undoLocation(),
                                       child: Container(
                                         width: 40,
@@ -228,12 +228,14 @@ class _MapScreenState extends State<MapScreen> {
                                               : Colors.white,
                                         ),
                                       ),
-                                    )
-                                  : SizedBox(),
-                              SizedBox(
-                                  width: mapProv.isEditMode == true ? 10 : 0),
-                              mapProv.isEditMode == true
-                                  ? InkWell(
+                                    ),
+                                  )
+                                : SizedBox(),
+                            SizedBox(
+                                width: mapProv.isEditMode == true ? 10 : 0),
+                            mapProv.isEditMode == true
+                                ? PointerInterceptor(
+                                    child: InkWell(
                                       onTap: () =>
                                           mapProv.saveTracking(context),
                                       child: Container(
@@ -252,11 +254,13 @@ class _MapScreenState extends State<MapScreen> {
                                               : Colors.white,
                                         ),
                                       ),
-                                    )
-                                  : SizedBox(),
-                              SizedBox(
-                                  width: mapProv.isEditMode == true ? 10 : 0),
-                              InkWell(
+                                    ),
+                                  )
+                                : SizedBox(),
+                            SizedBox(
+                                width: mapProv.isEditMode == true ? 10 : 0),
+                            PointerInterceptor(
+                              child: InkWell(
                                 onTap: () => mapProv.changeEditMode(),
                                 child: Container(
                                   width: 40,
@@ -276,8 +280,10 @@ class _MapScreenState extends State<MapScreen> {
                                   ),
                                 ),
                               ),
-                              SizedBox(width: 10),
-                              InkWell(
+                            ),
+                            SizedBox(width: 10),
+                            PointerInterceptor(
+                              child: InkWell(
                                 onTap: () => mapProv.changeCameraPosition(
                                     mapProv.sourceLocation!),
                                 child: Container(
@@ -296,8 +302,10 @@ class _MapScreenState extends State<MapScreen> {
                                   ),
                                 ),
                               ),
-                              SizedBox(width: 10),
-                              InkWell(
+                            ),
+                            SizedBox(width: 10),
+                            PointerInterceptor(
+                              child: InkWell(
                                 onTap: () {
                                   if (isSatellite) {
                                     isSatellite = false;
@@ -321,15 +329,17 @@ class _MapScreenState extends State<MapScreen> {
                                   ),
                                 ),
                               ),
-                            ],
-                          )),
-                    ),
-                    widget.targetCameraPosition == null && mapProv.isEditMode
-                        ? Align(
-                            alignment: Alignment.bottomLeft,
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.only(bottom: 30, left: 20),
+                            ),
+                          ],
+                        )),
+                  ),
+                  widget.targetCameraPosition == null && mapProv.isEditMode
+                      ? Align(
+                          alignment: Alignment.bottomLeft,
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.only(bottom: 30, left: 20),
+                            child: PointerInterceptor(
                               child: InkWell(
                                 onTap: () {
                                   mapProv.addGpsLocation(
@@ -352,10 +362,10 @@ class _MapScreenState extends State<MapScreen> {
                                 ),
                               ),
                             ),
-                          )
-                        : SizedBox(height: 0, width: 0),
-                  ],
-                ),
+                          ),
+                        )
+                      : SizedBox(height: 0, width: 0),
+                ],
               ),
             );
           },
