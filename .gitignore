@@ -30,6 +30,9 @@
 .pub/
 build/
 
+#web secrets
+example/web/
+
 # Android related
 **/android/**/gradle-wrapper.jar
 **/android/.gradle
